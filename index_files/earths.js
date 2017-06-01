@@ -1,60 +1,104 @@
-const makeEarth = function () {
-	const container = document.getElementById('container');
-	const maker = new Maker(container);
-  maker.animate()
+const filter = function (geo, names) {
+  var features = geo.features.filter(feature => {
+    return names.indexOf(feature.properties.name.toLowerCase()) > -1;
+  });
+  var [x, ...z] = features;
+  var union = z.reduce((a, b) => {
+    return turf.union(a, b);
+  }, x);
+  return union;
 }
 
-class Maker {
-	constructor (container) {
+const XYZtoPoint = function (x, y, z, radius) {
+  const latitude = 90 - (Math.acos(y / radius)) * 180 / Math.PI;
+  const longitude = ((270 + (Math.atan2(x , z)) * 180 / Math.PI) % 360) -180;
+  return turf.point([longitude, latitude])
+}
+
+const makeEarth = async function () {
+  const container = document.getElementById('container');
+  try {
+    const countries = await axios.get('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json');
+    const globe = new Globe(container, countries.data);
+    globe.animate();
+    window.globe = globe;
+  } catch (error) {
+    return error;
+  }
+}
+
+class Globe {
+  constructor (container, countries) {
     this.options = {
       radius: 400
     }
-		this.renderer = this.createRenderer();
+    
+    this.stats = this.showStats();
+    this.countries = countries;
+    this.renderer = this.createRenderer();
     this.universe = this.universe();
     // this.dish();
     // this.background();
     
     this.planet = new THREE.Group();
-    this.planet.add(this.globe());
-    this.planet.add(this.core());
-    this.planet.add(this.orbit());
-    this.planet.add(this.ticks());
+    
+    // this.planet.add(this.core());
+    // this.planet.add(this.orbit());
+    // this.planet.add(this.ticks());
     // this.planet.add(this.lines());
-    this.planet.add(this.rings());
-    this.planet.add(this.marker());
-    this.planet.add(this.topu({r: 1.03, color: '0x00a2ff'}))
+    this.planet.add(this.darkEarth())
+    // this.planet.add(this.globe());
+
+    // australia ‎lat long: -33.856159, 151.215256  
+    // this.planet.add(new Marker(-34.603722, -58.381592, 400)) // argentina buenos aires
+    // this.planet.add(new Marker(9.0831986,-79.5924029, 400))
+    // this.planet.add(this.topu({r: 1.03, color: '0x00a2ff'}))
 
     this.world = new THREE.Group();
     this.world.add(this.planet);
 
+    
+
     this.world.rotation.z = .465;
     this.world.rotation.x = .3;
+    //this.planet.rotation.y = 9
 
+    this.lights()
     this.scene.add(this.world);
     container.appendChild(this.renderer.domElement);
     console.log('done')
-	}
+  }
 
+  showStats () {
+    const stats = new Stats();
+    stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
+    document.getElementById('stats').append( stats.domElement );
+    return stats;
+  }
 
   animate () {
     const { scene, camera, renderer } = this;
     const globe = this.planet;
+    const me = this;
 
     function render(time) {
-      globe.rotation.y -= .005;
+      //globe.rotation.y -= .005;
       TWEEN.update(time);
       renderer.render(scene, camera);
     }
 
     function loop(time) {
-        const animationId = requestAnimationFrame(loop);
-        render(time);
+      me.stats.update();
+      // me.stats.begin();
+      render(time);
+      // me.stats.end();
+      const animationId = requestAnimationFrame(loop);
     }
     loop()
   }
 
-	createRenderer () {
-		let renderer = new THREE.WebGLRenderer({
+  createRenderer () {
+    let renderer = new THREE.WebGLRenderer({
       antialias: true,
       clearAlpha: 1
     });
@@ -62,19 +106,30 @@ class Maker {
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     return renderer;
-	}
+  }
 
-	universe () {
+  universe () {
     this.scene = new THREE.Scene();
+    // this.scene.fog = new THREE.FogExp2( 0x000000, 0.0005 );
     this.camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 3000);
     this.camera.position.z = 1400;
     this.scene.add(this.camera);
-	}
+  }
 
-  whole () {
-    this.whole = new THREE.Group()  
+  lights () {
+    const ambientLight = new THREE.AmbientLight(0x333333); 
+    const spotLightRight = new THREE.DirectionalLight(0xffffff, 1);
+    spotLightRight.position.set(5,3,5);
+    
+    const spotLightLeft = new THREE.DirectionalLight(0xffffff, 1);
+    spotLightLeft.position.set(-5,8,15);
+
+    this.scene.add(ambientLight);
+    this.scene.add(spotLightRight);
+    this.scene.add(spotLightLeft);
   }
   
+
   dish () {
     const loader = new THREE.TextureLoader();
     const dishMaterial = new THREE.MeshBasicMaterial( { 
@@ -114,177 +169,20 @@ class Maker {
 
     this.scene.add(plate);
   }
-
-  mapPoint (latitude, longitude, scale) {
-    if(!scale){
-      scale = 400;
-    }
-    const radius = 320;
-    let x = radius * Math.cos(longitude) * Math.sin(latitude);
-    let y = radius * Math.cos(latitude);    
-    let z = radius * Math.sin(longitude) * Math.sin(latitude);
-    return {x: x, y: y, z:z};
-  }
   
-
-  makeTexture (radius, width) {
-    const canvas = document.createElement('canvas');
-    canvas.width = 512;
-    canvas.height = 512;
-    const ctx = canvas.getContext('2d');
-    const texture = new THREE.Texture(canvas);
-
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    /* circle */
-    var centerX = canvas.width / 2;
-    var centerY = canvas.height / 2;
-    radius = radius || 70;
-    width = width || 50;
-
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
-    ctx.fillStyle = 'rgba(0,0,0,0)';
-    ctx.fill();
-    ctx.lineWidth = width;
-    ctx.strokeStyle = 'rgba(255,0,0,0.5)';
-    ctx.stroke();
-
-    /* Text */
-    // ctx.font = '120pt Arial';
-    // ctx.textAlign = "center";
-    // ctx.textBaseline = "middle";
-    // ctx.fillStyle = 'rgba(255,0,0,0.5)';  
-    // ctx.fillText(new Date().getTime(), canvas.width / 2, canvas.height / 2);
-    
-    var init = 24;
-    radius = 0;
-
-    this.interval = setInterval(() => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      this.doRing (texture, canvas, ctx, canvas.width / 2, canvas.height / 2, radius, 8, 0.5, 1)
-      // move the texture to give the illusion of moving thru the tunnel
-      texture.needsUpdate = true;
-      radius += 5;
-      if(radius > 60) {
-        clearInterval(this.interval);
-      }
-    }, 100)
-
-    return texture;
-  }
-
-  doRing (texture, canvas, ctx, x, y, radius, w, opacity = 1) {
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
-    ctx.fillStyle = 'rgba(0,0,0,0)';
-    ctx.fill();
-    ctx.lineWidth = w;
-    ctx.strokeStyle = `rgba(255, 255, 0, ${opacity})`;
-    ctx.stroke();
-  }
-
-  makeTextureX (radius, width) {
-    const me = this;
-    const canvas = document.createElement('canvas');
-    canvas.width = 512;
-    canvas.height = 512;
-    const ctx = canvas.getContext('2d');
-    const texture = new THREE.Texture(canvas);
-
-    // ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    let attributes = { opacity: 1, radius: 0, border: 8 };
-    new TWEEN.Tween( attributes )
-      .delay( 200 )
-      .to( { opacity: 0, radius: 40, border: 1 }, 1000 )
-      .easing(TWEEN.Easing.Quartic.Out)
-      .onUpdate(function(progress) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        me.doRing (texture, canvas, ctx, canvas.width / 2, canvas.height / 2, this.radius, this.border, this.opacity)
-        texture.needsUpdate = true;
-      })
-      .repeat(Infinity)
-      .start(); 
-
-    return texture;
-  }
-
-  coordsMove (latitude, longitude, radius) {
-    let curLat = 90 - latitude;
-    let curLong = 180 - longitude;
-    
-    curLong *= Math.PI/180;
-    curLat *= Math.PI/180;
-         
-    const x = radius * Math.cos(curLong) * Math.sin(curLat);
-    const z = radius * Math.sin(curLong) * Math.sin(curLat);
-    const y = radius * Math.cos(curLat); 
-
-    return {x, y, z};
-  }
-
-  marker () {
-    const marker = new THREE.Group();
-    const radius = 400;
-
-    const tickMaterial = new THREE.LineBasicMaterial( { 
-      color: 0xFFFFFF,
-      linewidth: 1, 
-      depthTest: false,  
-      blending: THREE.AdditiveBlending, 
-      transparent : true,
-      opacity: 1
-    });
-    const geometry = new THREE.Geometry();
-    
-    const coordsa = this.coordsMove(-34.603722, -58.381592, radius);
-    geometry.vertices.push( new THREE.Vector3( coordsa.x, coordsa.y, coordsa.z ) );
-    const coordsb = this.coordsMove(-34.603722, -58.381592, radius + 20);
-    geometry.vertices.push( new THREE.Vector3( coordsb.x, coordsb.y, coordsb.z ) );
-    const line = new THREE.Line( geometry, tickMaterial, THREE.LineStrip );
-    marker.add(line);
-
-
-    const sphere = new THREE.SphereGeometry( 3, 32, 32 )
-    const material = new THREE.LineBasicMaterial( { 
-      color: 0xFFFFFF,
-      linewidth: 1, 
-      depthTest: false,  
-      blending: THREE.AdditiveBlending, 
-      transparent : true,
-      opacity: 1
-    });
-
-    const mesh = new THREE.Mesh( sphere, material );
-    mesh.position.set(coordsb.x, coordsb.y, coordsb.z);
-    marker.add(mesh);
-
-    return marker;
-  }
-
-  rings () {
-    const geometry = new THREE.CircleGeometry( 132, 32 );
-    geometry.applyMatrix( new THREE.Matrix4().makeRotationFromEuler(new THREE.Vector3(Math.PI / 2, Math.PI, 0)));
-    const material = new THREE.MeshBasicMaterial({
-      map: this.makeTextureX(),
-      side: THREE.DoubleSide,
-      blending: THREE.AdditiveBlending, 
-      transparent : true,
-      opacity: 1,
-      // wireframe: true
-    });
-
-    const mesh = new THREE.Mesh( geometry, material );
-
-    const radius = 422.5;
-    
-    const coords = this.coordsMove(-34.603722, -58.381592, radius);
-    mesh.position.set(coords.x, coords.y, coords.z);
-    mesh.lookAt(new THREE.Vector3(0,0,0));
-
-    return mesh;
+  getGeo(latitude, longitude) {
+    return axios.get('https://rawgit.com/sghall/webgl-globes/master/data/world.json')
+    .then(result => result.data)
+    .then(data => {
+      const countries = topojson.feature(data, data.objects.countries);
+      const geo = geodecoder(countries.features);
+      // Look for country at that latitude/longitude
+      //const country = geo.search(latitude, longitude);
+      //console.info('country: ', country)
+      //return country;
+      //filter(data, ['argentina', 'uruguay', 'bolivia', 'brazil', 'peru', 'paraguay']);
+      return countries;
+    })
   }
 
   core () {
@@ -490,15 +388,86 @@ class Maker {
     return orbitParticles;
   }
 
-  globe () {
+  mapPoint (latitude, longitude, radius) {
+    let curLat = 90 - latitude;
+    let curLong = 180 - longitude;
+    
+    curLong *= Math.PI/180;
+    curLat *= Math.PI/180;
+         
+    const x = radius * Math.cos(curLong) * Math.sin(curLat);
+    const z = radius * Math.sin(curLong) * Math.sin(curLat);
+    const y = radius * Math.cos(curLat); 
+
+    return {x, y, z};
+  }
+
+  center (latitude, longitude) {
+    //const verticalOffset = 0.1;
+    const verticalOffset = 0;
+    let tween = new TWEEN.Tween(this.planet.rotation)
+    .to({ 
+      x: latitude * ( Math.PI / 180 ) - verticalOffset, 
+      y: ( 90 - longitude ) * ( Math.PI / 180 ) 
+    }, 2000)
+    .easing(TWEEN.Easing.Quartic.InOut)
+    .start();
+  }
+
+  highlightRegion () {
+    const region = filter(this.countries, ['argentina', 'australia']);
+
+    let earthColors = [];
+    let colorIndex = 0;
+    var xIndex = 0;
+    for (let longitude = 2*Math.PI; longitude >= 0; longitude-=2*Math.PI/(480)) {
+      var yIndex = 0;
+      for (let latitude= 0; latitude <= Math.PI; latitude+=Math.PI/(240)) {
+        if (mapData[yIndex][xIndex] == 0) {
+          
+          const x = this.options.radius * Math.cos(longitude) * Math.sin(latitude);
+          const z = this.options.radius * Math.sin(longitude) * Math.sin(latitude);
+          const y = this.options.radius * Math.cos(latitude);
+
+          const point = XYZtoPoint(x, y, z, this.options.radius);
+
+          if(turf.inside(point, region)) {
+            this.tgeometry.colors[colorIndex].set(0xff0000)
+          }
+          colorIndex++;
+        }
+        yIndex++;
+      }
+      xIndex++;
+    }
+
+    //this.tgeometry.colors = earthColors;
+    this.tgeometry.colorsNeedUpdate = true;
+  }
+
+  darkEarth () {
+    const geometry = new THREE.SphereGeometry( 398, 32, 32 );
+    const material = new THREE.MeshBasicMaterial({
+      color: 0xCCCCCC,
+      opacity: 0.5,
+      transparent : true,
+      blending: THREE.NormalBlending,
+      // wireframe: true
+    });
+    const sphere = new THREE.Mesh( geometry, material );
+    return sphere;
+  }
+
+  // "NoBlending", "NormalBlending", "AdditiveBlending", "SubtractiveBlending", "MultiplyBlending"
+  globe (country) {
     const loader = new THREE.TextureLoader();
     const tmaterial = new THREE.PointsMaterial({
-      size: 12, 
+      size: 16,
       vertexColors: THREE.VertexColors,
       map: loader.load( "textures/sprites/circle.png" ) , 
       depthTest: false,  
-      blending: THREE.AdditiveBlending, 
-      transparent : true,
+      blending: THREE.AdditiveBlending,
+      transparent: true,
       opacity: 1
     });
 
@@ -514,13 +483,13 @@ class Maker {
       for (let latitude= 0; latitude <= Math.PI; latitude+=Math.PI/(240)) {
         if (mapData[yIndex][xIndex] == 0) {
           
-          const x = 400 * Math.cos(longitude) * Math.sin(latitude);
-          const z = 400 * Math.sin(longitude) * Math.sin(latitude);
-          const y = 400 * Math.cos(latitude);
+          const x = this.options.radius * Math.cos(longitude) * Math.sin(latitude);
+          const z = this.options.radius * Math.sin(longitude) * Math.sin(latitude);
+          const y = this.options.radius * Math.cos(latitude);
 
           tgeometry.vertices.push(new THREE.Vector3(x, y, z));
           earthColors[ colorIndex ] = new THREE.Color( 0x1b9ebc );
-          //earthColors[ colorIndex ].setHSL( .12, 0, .5 ); 
+
           colorIndex++;
         }
         yIndex++;
@@ -529,6 +498,7 @@ class Maker {
     }
 
     tgeometry.colors = earthColors;
+    this.tgeometry = tgeometry;
     //tgeometry.verticesNeedUpdate = true;
     //tgeometry.computeVertexNormals();
 
