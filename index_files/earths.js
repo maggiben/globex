@@ -15,13 +15,89 @@ const XYZtoPoint = function (x, y, z, radius) {
   return turf.point([longitude, latitude])
 }
 
+
+const FizzyText = function() {
+  this.message = 'dat.gui';
+  this.speed = 0.8;
+  this.displayOutline = false;
+  this.explode = function() {
+
+  };
+  this.core = false;
+  this.orbit = false;
+  this.ticks = false;
+  this.lines = false;
+  this.marker = false;
+  this.topu = false;
+  // Define render logic ...
+};
+
+const listeners = function (gui, globe) {
+  const text = new FizzyText();
+  const globeWidgets = gui.addFolder('widgets')
+  const widgets = {
+    'core': {
+      enabled: false,
+      instance: null,
+      tween: null
+    }, 
+    'orbit': {
+      enabled: false,
+      instance: null,
+      tween: null
+    }, 
+    'ticks': {
+      enabled: false,
+      instance: null,
+      tween: null
+    }, 
+    'lines': {
+      enabled: false,
+      instance: null,
+      tween: null
+    }, 
+    'marker': {
+      enabled: false,
+      instance: null,
+      tween: null
+    }, 
+    'topu': {
+      enabled: false,
+      instance: null,
+      tween: null
+    }
+  }
+  
+  const controllers = Object.keys(widgets).reduce(function (map, widget) {
+    map[widget] = globeWidgets.add(text, widget, widgets[widget]);
+    return map;
+  }, {});
+
+  controllers.core.onChange(value => {
+    if (value) {
+      widgets.core.instance = globe.core();
+      globe.planet.add(core);
+    } else if (!value && widgets.core.instance) {
+      globe.planet.remove(widgets.core.instance);
+    }
+  });
+
+  return controllers;
+}
+
 const makeEarth = async function () {
   const container = document.getElementById('container');
+
+  const text = new FizzyText();
+  const gui = new dat.GUI();
+  gui.add(text, 'message');
+  gui.add(text, 'speed', -5, 5);
+  // const objects = gui.addFolder('objects')
   try {
     const countries = await axios.get('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json');
     const globe = new Globe(container, countries.data);
+    listeners(gui, globe);
     globe.animate();
-    window.globe = globe;
   } catch (error) {
     return error;
   }
@@ -39,6 +115,8 @@ class Globe {
     this.universe = this.universe();
     // this.dish();
     // this.background();
+
+    this.setupControls()
     
     this.planet = new THREE.Group();
     
@@ -46,8 +124,9 @@ class Globe {
     // this.planet.add(this.orbit());
     // this.planet.add(this.ticks());
     // this.planet.add(this.lines());
+    this.lights();
     this.planet.add(this.darkEarth())
-    // this.planet.add(this.globe());
+    this.planet.add(this.globe());
 
     // australia ‎lat long: -33.856159, 151.215256  
     // this.planet.add(new Marker(-34.603722, -58.381592, 400)) // argentina buenos aires
@@ -59,11 +138,10 @@ class Globe {
 
     
 
-    this.world.rotation.z = .465;
-    this.world.rotation.x = .3;
+    // this.world.rotation.z = .465;
+    // this.world.rotation.x = .3;
     //this.planet.rotation.y = 9
 
-    this.lights()
     this.scene.add(this.world);
     container.appendChild(this.renderer.domElement);
     console.log('done')
@@ -82,7 +160,7 @@ class Globe {
     const me = this;
 
     function render(time) {
-      //globe.rotation.y -= .005;
+      globe.rotation.y -= .005;
       TWEEN.update(time);
       renderer.render(scene, camera);
     }
@@ -93,6 +171,7 @@ class Globe {
       render(time);
       // me.stats.end();
       const animationId = requestAnimationFrame(loop);
+      //me.controls.update();
     }
     loop()
   }
@@ -116,20 +195,40 @@ class Globe {
     this.scene.add(this.camera);
   }
 
-  lights () {
-    const ambientLight = new THREE.AmbientLight(0x333333); 
-    const spotLightRight = new THREE.DirectionalLight(0xffffff, 1);
-    spotLightRight.position.set(5,3,5);
-    
-    const spotLightLeft = new THREE.DirectionalLight(0xffffff, 1);
-    spotLightLeft.position.set(-5,8,15);
+  setupControls () {
+    const { scene, camera, renderer } = this;
+    const controls = new THREE.TrackballControls( camera );
 
-    this.scene.add(ambientLight);
-    this.scene.add(spotLightRight);
-    this.scene.add(spotLightLeft);
+    controls.rotateSpeed = 1.0;
+    controls.zoomSpeed = 1.2;
+    controls.panSpeed = 0.8;
+
+    controls.noZoom = false;
+    controls.noPan = false;
+
+    controls.staticMoving = true;
+    controls.dynamicDampingFactor = 0.3;
+
+    controls.keys = [ 65, 83, 68 ];
+
+    // controls.addEventListener( 'change', render );
+    this.controls = controls;
+  }
+
+  lights () {
+    const ambientLight = new THREE.AmbientLight(0xff0000); 
+    const spotLight = new THREE.DirectionalLight(0xffffff, 1);
+    // spotLight.position.set(5,3,5);
+    spotLight.position.set(100, 1, 0);
+
+    spotLight.target = this.planet;
+
+    // this.scene.add(ambientLight);
+    this.scene.add(spotLight);
+    // this.scene.add(spotLightLeft);
+    console.info('lights done')
   }
   
-
   dish () {
     const loader = new THREE.TextureLoader();
     const dishMaterial = new THREE.MeshBasicMaterial( { 
@@ -170,21 +269,6 @@ class Globe {
     this.scene.add(plate);
   }
   
-  getGeo(latitude, longitude) {
-    return axios.get('https://rawgit.com/sghall/webgl-globes/master/data/world.json')
-    .then(result => result.data)
-    .then(data => {
-      const countries = topojson.feature(data, data.objects.countries);
-      const geo = geodecoder(countries.features);
-      // Look for country at that latitude/longitude
-      //const country = geo.search(latitude, longitude);
-      //console.info('country: ', country)
-      //return country;
-      //filter(data, ['argentina', 'uruguay', 'bolivia', 'brazil', 'peru', 'paraguay']);
-      return countries;
-    })
-  }
-
   core () {
     const coreGeometry = new THREE.Geometry();
         
@@ -304,7 +388,9 @@ class Globe {
     }
 
     new TWEEN.Tween( tickMaterial)
-      .to( {opacity: .5}, 2000)
+      .to({
+        opacity: .5
+      }, 2000)
       .delay(1000)        
       .easing(TWEEN.Easing.Quartic.Out)
       .start();
@@ -402,20 +488,20 @@ class Globe {
     return {x, y, z};
   }
 
-  center (latitude, longitude) {
+  center (latitude, longitude, delay = 2000) {
     //const verticalOffset = 0.1;
     const verticalOffset = 0;
     let tween = new TWEEN.Tween(this.planet.rotation)
     .to({ 
       x: latitude * ( Math.PI / 180 ) - verticalOffset, 
       y: ( 90 - longitude ) * ( Math.PI / 180 ) 
-    }, 2000)
+    }, delay)
     .easing(TWEEN.Easing.Quartic.InOut)
     .start();
   }
 
-  highlightRegion () {
-    const region = filter(this.countries, ['argentina', 'australia']);
+  highlightRegions (regions) {
+    const region = filter(this.countries, [].concat(regions)); //'argentina', 'australia'
 
     let earthColors = [];
     let colorIndex = 0;
@@ -446,14 +532,30 @@ class Globe {
   }
 
   darkEarth () {
-    const geometry = new THREE.SphereGeometry( 398, 32, 32 );
-    const material = new THREE.MeshBasicMaterial({
-      color: 0xCCCCCC,
-      opacity: 0.5,
-      transparent : true,
+    const loader = new THREE.TextureLoader();
+    const material = new THREE.MeshBasicMaterial( { 
+      // map: loader.load( '../images/basic.jpg' ),
+      color: 0x000000,
       blending: THREE.NormalBlending,
-      // wireframe: true
+      transparent: true,
+      opacity: 0.8
     });
+    const phongMaterial = new THREE.MeshPhongMaterial({
+      // map: loader.load( '../images/basic.jpg' ),
+      color: 0x000000,
+      blending: THREE.NormalBlending,
+      transparent: true,
+      opacity: 0.8
+    })
+
+    const geometry = new THREE.SphereGeometry( 398, 32, 32 );
+    // const material = new THREE.MeshBasicMaterial({
+    //   color: 0xCCCCCC,
+    //   opacity: 0.5,
+    //   transparent : true,
+    //   blending: THREE.NormalBlending,
+    //   // wireframe: true
+    // });
     const sphere = new THREE.Mesh( geometry, material );
     return sphere;
   }
@@ -462,13 +564,15 @@ class Globe {
   globe (country) {
     const loader = new THREE.TextureLoader();
     const tmaterial = new THREE.PointsMaterial({
-      size: 16,
+      size: 4,
       vertexColors: THREE.VertexColors,
-      map: loader.load( "textures/sprites/circle.png" ) , 
-      depthTest: false,  
-      blending: THREE.AdditiveBlending,
-      transparent: true,
-      opacity: 1
+      // map: loader.load( "textures/sprites/circle.png" ),
+      // depthTest: false,
+      blending: THREE.NormalBlending,
+      side: THREE.DoubleSide,
+      // transparent: true,
+      // opacity: 1,
+      // lights: true
     });
 
     const tgeometry = new THREE.Geometry();
