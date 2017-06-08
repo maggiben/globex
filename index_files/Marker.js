@@ -25,7 +25,7 @@ class Marker {
     marker.add(this.rings(latitude, longitude, radius));
     marker.add(this.line(latitude, longitude, radius));
     marker.add(this.sphere(latitude, longitude, radius));
-    const label = new Label('Argentina', latitude, longitude, radius);
+    const label = new Label('asdlfjasldkjfalks', latitude, longitude, radius);
     marker.add(label);
     return marker;
   }

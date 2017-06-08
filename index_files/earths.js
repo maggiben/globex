@@ -108,29 +108,31 @@ class Globe {
     this.options = {
       radius: 400
     }
+
+    window.globe = this;
     
-    this.stats = this.showStats();
+    // this.stats = this.showStats();
     this.countries = countries;
     this.renderer = this.createRenderer();
     this.universe = this.universe();
     // this.dish();
     // this.background();
 
-    this.setupControls()
+    // this.setupControls()
     
     this.planet = new THREE.Group();
     
     // this.planet.add(this.core());
-    // this.planet.add(this.orbit());
+    this.planet.add(this.orbit());
     // this.planet.add(this.ticks());
     // this.planet.add(this.lines());
-    this.lights();
-    this.planet.add(this.darkEarth())
+    // this.lights();
+    // this.planet.add(this.darkEarth())
     this.planet.add(this.globe());
 
     // australia ‎lat long: -33.856159, 151.215256  
     // this.planet.add(new Marker(-34.603722, -58.381592, 400)) // argentina buenos aires
-    // this.planet.add(new Marker(9.0831986,-79.5924029, 400))
+    this.planet.add(new Marker(9.0831986,-79.5924029, 400))
     // this.planet.add(this.topu({r: 1.03, color: '0x00a2ff'}))
 
     this.world = new THREE.Group();
@@ -138,13 +140,13 @@ class Globe {
 
     
 
-    // this.world.rotation.z = .465;
-    // this.world.rotation.x = .3;
+    this.world.rotation.z = .465;
+    this.world.rotation.x = .3;
     //this.planet.rotation.y = 9
 
     this.scene.add(this.world);
-    container.appendChild(this.renderer.domElement);
-    console.log('done')
+    //container.appendChild(this.renderer.domElement);
+    this.makeBW()
   }
 
   showStats () {
@@ -269,6 +271,58 @@ class Globe {
     this.scene.add(plate);
   }
   
+  makeBW () {
+    const canvas = document.getElementById('map');
+    const width = canvas.width = 480;
+    const height = canvas.height = 240;
+    const context = canvas.getContext('2d');
+    const imageData = context.createImageData(width, height);
+
+    context.fillStyle="red";
+    context.fillRect(10,10,50,50);
+
+    for(var i=0; i < imageData.data.length; i+=4) {
+      imageData.data[i]=0;
+      imageData.data[i+1]=0;
+      imageData.data[i+2]=255;
+      imageData.data[i+3]=64;
+    }
+
+
+    console.log('width: %s, height: %s', imageData.width, imageData.height)
+
+    for (let row = 0; row < imageData.height; row++) {
+      for (let col = 0; col < imageData.width; col++) {
+        // imageData.data[(row + col) + 0] = 255
+        // imageData.data[(row + col) + 1] = 0
+        // imageData.data[(row + col) + 2] = 255
+        // imageData.data[(row + col) + 3] = 64
+        imageData.data[(row * imageData.width + col) * 4 + 0] = mapData[row][col] * 255;
+        imageData.data[(row * imageData.width + col) * 4 + 1] = mapData[row][col] * 255;
+        imageData.data[(row * imageData.width + col) * 4 + 2] = mapData[row][col] * 255;
+        imageData.data[(row * imageData.width + col) * 4 + 3] = 255;
+      }
+    }
+
+    context.putImageData(imageData, 0, 0);
+    /*
+
+    const data = imageData.data;
+    console.log(data)
+    for (let i = 0; i < data.length; i += 4) {
+      data[i]     = 255;     // red
+      data[i + 1] = 255;
+      data[i + 2] = 0;
+    }
+    console.log(data)
+    context.putImageData(imageData, 0, 0);
+
+    var imagedata = context.getImageData(0, 0, 100, 100);
+    // use the putImageData function that illustrates how putImageData works
+    putImageData(context, imagedata, 150, 0, 50, 50, 25, 25);
+
+    */
+  }
   core () {
     const coreGeometry = new THREE.Geometry();
         
@@ -491,7 +545,7 @@ class Globe {
   center (latitude, longitude, delay = 2000) {
     //const verticalOffset = 0.1;
     const verticalOffset = 0;
-    let tween = new TWEEN.Tween(this.planet.rotation)
+    const tween = new TWEEN.Tween(this.planet.rotation)
     .to({ 
       x: latitude * ( Math.PI / 180 ) - verticalOffset, 
       y: ( 90 - longitude ) * ( Math.PI / 180 ) 
@@ -500,7 +554,7 @@ class Globe {
     .start();
   }
 
-  highlightRegions (regions) {
+  highlightRegions (regions, color = 0xff0000) {
     const region = filter(this.countries, [].concat(regions)); //'argentina', 'australia'
 
     let earthColors = [];
@@ -518,7 +572,7 @@ class Globe {
           const point = XYZtoPoint(x, y, z, this.options.radius);
 
           if(turf.inside(point, region)) {
-            this.tgeometry.colors[colorIndex].set(0xff0000)
+            this.tgeometry.colors[colorIndex].set(color)
           }
           colorIndex++;
         }
@@ -526,36 +580,18 @@ class Globe {
       }
       xIndex++;
     }
-
-    //this.tgeometry.colors = earthColors;
     this.tgeometry.colorsNeedUpdate = true;
   }
 
   darkEarth () {
     const loader = new THREE.TextureLoader();
     const material = new THREE.MeshBasicMaterial( { 
-      // map: loader.load( '../images/basic.jpg' ),
       color: 0x000000,
       blending: THREE.NormalBlending,
       transparent: true,
       opacity: 0.8
     });
-    const phongMaterial = new THREE.MeshPhongMaterial({
-      // map: loader.load( '../images/basic.jpg' ),
-      color: 0x000000,
-      blending: THREE.NormalBlending,
-      transparent: true,
-      opacity: 0.8
-    })
-
     const geometry = new THREE.SphereGeometry( 398, 32, 32 );
-    // const material = new THREE.MeshBasicMaterial({
-    //   color: 0xCCCCCC,
-    //   opacity: 0.5,
-    //   transparent : true,
-    //   blending: THREE.NormalBlending,
-    //   // wireframe: true
-    // });
     const sphere = new THREE.Mesh( geometry, material );
     return sphere;
   }
