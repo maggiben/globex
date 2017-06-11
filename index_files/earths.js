@@ -98,7 +98,14 @@ const makeEarth = async function () {
 class Globe {
   constructor (container, countries) {
     this.options = {
-      radius: 400,
+      radius: 600,
+      map: {
+        size: {
+          width: 960,
+          height: 480
+        },
+        uri: 'https://unpkg.com/world-atlas@1.1.4/world/50m.json'
+      },
       rotationSpeed: .005
     }
     
@@ -118,7 +125,7 @@ class Globe {
     // this.planet.add(this.ticks());
     // this.planet.add(this.lines());
     // this.lights();
-    // this.planet.add(this.darkEarth());
+    this.planet.add(this.darkEarth(this.options.radius));
 
     const path = new Path();
     const origin = path.latLonToVector3(-34.603722, -58.381592);
@@ -133,12 +140,10 @@ class Globe {
 
     const line = new THREE.Line(geometry, material);
 
-    console.log(geometry, material)
-
     this.scene.add(line);
 
     // // australia ‎lat long: -33.856159, 151.215256  
-    this.planet.add(new Marker(-34.603722, -58.381592, this.options.radius, 'Argentina')) // argentina buenos aires
+    // this.planet.add(new Marker(-34.603722, -58.381592, this.options.radius, 'Argentina')) // argentina buenos aires
     // this.planet.add(new Marker(9.0831986,-79.5924029, 400))
     // this.planet.add(this.topu({r: 1.03, color: '0x00a2ff'}))
 
@@ -152,7 +157,8 @@ class Globe {
     this.scene.add(this.world);
     container.appendChild(this.renderer.domElement);
     // this.makeBW()
-    this.loadImage()
+    // this.loadImage()
+    this.makeMaps(this.countries, 960, 480) 
 
     return;
 
@@ -174,7 +180,48 @@ class Globe {
 
   }
 
-  loadImage () {
+  async makeMaps (countries, width, height) {
+    let mapData = Array(height).fill(0).map(() => Array(width).fill(0));
+    const world = await axios.get('https://unpkg.com/world-atlas@1.1.4/world/50m.json').then(world => world.data);
+
+    const canvas = document.createElement('canvas');
+    // const canvas = document.querySelector('#canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext('2d');
+    countries = topojson.feature(world, world.objects.countries).features;
+    const projection = d3.geoEquirectangular().scale(height / Math.PI).translate([width / 2, height / 2])//.fitSize([width, height], topojson.feature(world, world.objects.land));
+    const path = d3.geoPath(projection, context);
+    
+    const neighbors = topojson.neighbors(world.objects.countries.geometries);
+
+    //const features = topojson.feature(world, world.objects.counties)
+    //const features = topojson.feature(countries, countries);
+
+    context.beginPath();
+    context.fillStyle = '#F00';
+    context.strokeStyle = '#F00';
+    context.lineWidth = 0.005;
+    //path(topojson.feature(world, world.objects.countries));
+    path(topojson.feature(world, world.objects.land));
+    //context.stroke();
+    context.fill();
+
+
+    const imageData = context.getImageData(0, 0, width, height);
+
+    for (let row = 0; row < imageData.height; row++) {
+      for (let col = 0; col < imageData.width; col++) {
+        const R = imageData.data[(row * imageData.width + col) * 4 + 0];
+        mapData[row][col] = !R;
+      }
+    }
+
+    console.log('sale', imageData)
+    this.planet.add(this.globe(mapData));
+  }
+
+  loadImageuuu () {
     const img = new Image();
     let mapData = Array(240).fill(0).map(() => Array(480).fill(0));
     const imageLoaded = event => {
@@ -258,8 +305,8 @@ class Globe {
 
   createRenderer () {
     let renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      clearAlpha: 1
+      // antialias: true,
+      // clearAlpha: 1
     });
     renderer.setClearColor(0x000000);
     renderer.setPixelRatio(window.devicePixelRatio);
@@ -375,9 +422,9 @@ class Globe {
         // imageData.data[(row + col) + 1] = 0
         // imageData.data[(row + col) + 2] = 255
         // imageData.data[(row + col) + 3] = 64
-        imageData.data[(row * imageData.width + col) * 4 + 0] = mapData[row][col] * 255;
-        imageData.data[(row * imageData.width + col) * 4 + 1] = mapData[row][col] * 255;
-        imageData.data[(row * imageData.width + col) * 4 + 2] = mapData[row][col] * 255;
+        imageData.data[(row * imageData.width + col) * 4 + 0] = mapMatrix[row][col] * 255;
+        imageData.data[(row * imageData.width + col) * 4 + 1] = mapMatrix[row][col] * 255;
+        imageData.data[(row * imageData.width + col) * 4 + 2] = mapMatrix[row][col] * 255;
         imageData.data[(row * imageData.width + col) * 4 + 3] = 255;
       }
     }
@@ -589,7 +636,7 @@ class Globe {
     let orbitParticles = new THREE.Points( orbitGeometry, orbitMaterial );
     orbitParticles.updateMatrix();
         
-    new TWEEN.Tween( orbitMaterial)
+    new TWEEN.Tween(orbitMaterial)
       .delay(500)
       .to( {opacity: 1}, 4000)
       .easing(TWEEN.Easing.Quartic.Out)
@@ -597,7 +644,7 @@ class Globe {
         
     orbitParticles.scale.x = .1;
     orbitParticles.scale.y = .1;
-    new TWEEN.Tween( orbitParticles.scale )
+    new TWEEN.Tween(orbitParticles.scale)
       .delay( 200 )
       .to( { x: 1, y: 1 }, 2000 )
       .easing(TWEEN.Easing.Quartic.Out)
@@ -661,7 +708,7 @@ class Globe {
     this.tgeometry.colorsNeedUpdate = true;
   }
 
-  darkEarth () {
+  darkEarth (radius) {
     const loader = new THREE.TextureLoader();
     // const material = new THREE.MeshBasicMaterial( { 
     //   color: 0x000000,
@@ -673,11 +720,11 @@ class Globe {
       color: 0x000000,
       specular: 0x111111,
       shininess: 100,
-      blending: THREE.MultiplyBlending,
+      blending: THREE.NormalBlending,
       transparent: true,
       opacity: 0.8
     });
-    const geometry = new THREE.SphereGeometry( 398, 64, 64 );
+    const geometry = new THREE.SphereGeometry( radius - 2, 64, 64 );
     const sphere = new THREE.Mesh( geometry, material );
     return sphere;
   }
@@ -728,9 +775,9 @@ class Globe {
     let earthColors = [];
     let colorIndex = 0;
     var xIndex = 0;
-    for (let longitude = 2*Math.PI; longitude >= 0; longitude-=2*Math.PI/(480)) {
+    for (let longitude = 2*Math.PI; longitude >= 0; longitude-=2*Math.PI/(960)) {
       var yIndex = 0;
-      for (let latitude= 0; latitude <= Math.PI; latitude+=Math.PI/(240)) {
+      for (let latitude= 0; latitude <= Math.PI; latitude+=Math.PI/(480)) {
 
         const x = this.options.radius * Math.cos(longitude) * Math.sin(latitude);
         const z = this.options.radius * Math.sin(longitude) * Math.sin(latitude);
@@ -740,11 +787,11 @@ class Globe {
           tgeometry.vertices.push(new THREE.Vector3(x, y, z));
           earthColors[ colorIndex ] = new THREE.Color( 0xFFFFFF );
           colorIndex++;
-        } else if (mapMatrix[yIndex][xIndex] == 0) {
+        /*} else if (mapMatrix[yIndex][xIndex] == 0) {
           tgeometry.vertices.push(new THREE.Vector3(x, y, z));
           earthColors[ colorIndex ] = new THREE.Color( 0x1b9ebc );
           colorIndex++;
-        }
+        */}
         yIndex++;
       }
       xIndex++;
