@@ -13,7 +13,7 @@ function filterXXX(geo, names) {
 
 class Marker {
 
-  constructor (latitude, longitude, radius = 400) {
+  constructor (latitude, longitude, radius, caption) {
     // axios.get('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json')
     // .then(result => result.data)
     // .then(json => {
@@ -21,18 +21,19 @@ class Marker {
     //   filter(json, ['argentina', 'uruguay', 'bolivia', 'brazil', 'peru', 'paraguay']);
     // })
 
-    const marker = new THREE.Group()
+    const marker = new THREE.Group();
+    const label = new Label(caption, latitude, longitude, radius);
+
     marker.add(this.rings(latitude, longitude, radius));
     marker.add(this.line(latitude, longitude, radius));
     marker.add(this.sphere(latitude, longitude, radius));
-    const label = new Label('asdlfjasldkjfalks', latitude, longitude, radius);
     marker.add(label);
     return marker;
   }
 
   sphere(latitude, longitude, radius) {
     const sphere = new THREE.SphereGeometry( 3, 16, 16 )
-    const material = new THREE.LineBasicMaterial( { 
+    const material = new THREE.LineBasicMaterial({ 
       color: 0xFFFFFF,
       linewidth: 1, 
       depthTest: false,  
