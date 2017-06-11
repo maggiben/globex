@@ -32,7 +32,7 @@ function getEventCenter(event, radius) {
 function convertToXYZ(point, radius) {
   radius = radius || 200;
 
-  var latRads = ( 90 - point[0]) * Math.PI / 180;
+  var latRads = (90 - point[0]) * Math.PI / 180;
   var lngRads = (180 - point[1]) * Math.PI / 180;
 
   var x = radius * Math.sin(latRads) * Math.cos(lngRads);

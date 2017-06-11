@@ -98,12 +98,10 @@ const makeEarth = async function () {
 class Globe {
   constructor (container, countries) {
     this.options = {
-      radius: 600,
-      map: {
-        size: {
-          width: 960,
-          height: 480
-        },
+      world: {
+        radius: 500,
+        width: 480,
+        height: 240,
         uri: 'https://unpkg.com/world-atlas@1.1.4/world/50m.json'
       },
       rotationSpeed: .005
@@ -121,45 +119,34 @@ class Globe {
     this.planet = new THREE.Group();
     
     // this.planet.add(this.core());
-    // this.planet.add(this.orbit(this.options.radius, 600));
-    // this.planet.add(this.ticks());
+    // this.planet.add(this.orbit(this.options.world.radius, 600));
+    // this.planet.add(this.ticks(this.options.world.radius, 15, 60));
     // this.planet.add(this.lines());
     // this.lights();
-    this.planet.add(this.darkEarth(this.options.radius));
-
-    const path = new Path();
-    const origin = path.latLonToVector3(-34.603722, -58.381592);
-    const destination = path.latLonToVector3(22.286394, 114.149139);
-    const linePoints = path.bezierCurveBetween(origin, destination);
-    const geometry = path.getGeom(linePoints);
-
-    const material = new THREE.LineBasicMaterial({
-      linewidth: 20,
-      color: 0xFF0000
-    });
-
-    const line = new THREE.Line(geometry, material);
-
-    this.scene.add(line);
+    this.planet.add(this.darkEarth(this.options.world.radius));
 
     // // australia ‎lat long: -33.856159, 151.215256  
-    // this.planet.add(new Marker(-34.603722, -58.381592, this.options.radius, 'Argentina')) // argentina buenos aires
+    this.planet.add(new Marker(-34.603722, -58.381592, this.options.world.radius, 'Argentina')) // argentina buenos aires
     // this.planet.add(new Marker(9.0831986,-79.5924029, 400))
     // this.planet.add(this.topu({r: 1.03, color: '0x00a2ff'}))
 
     this.world = new THREE.Group();
     this.world.add(this.planet);
 
-    this.world.rotation.z = .465;
-    this.world.rotation.x = .3;
+    // this.world.rotation.z = .465;
+    // this.world.rotation.x = .3;
     //this.planet.rotation.y = 9
 
     this.scene.add(this.world);
     container.appendChild(this.renderer.domElement);
     // this.makeBW()
     // this.loadImage()
-    this.makeMaps(this.countries, 960, 480) 
-
+    // this.makeMaps(960, 480) 
+    try {
+      const land = new Map(this.planet, this.options.world);
+    } catch (error) {
+      console.log(error)
+    }
     return;
 
     // postprocessing
@@ -180,7 +167,24 @@ class Globe {
 
   }
 
-  async makeMaps (countries, width, height) {
+  drawFlightPath() {
+    const path = new Path();
+    const origin = path.latLonToVector3(-34.603722, -58.381592);
+    const destination = path.latLonToVector3(22.286394, 114.149139);
+    const linePoints = path.bezierCurveBetween(origin, destination);
+    const geometry = path.getGeom(linePoints);
+
+    const material = new THREE.LineBasicMaterial({
+      linewidth: 20,
+      color: 0xFF0000
+    });
+
+    const line = new THREE.Line(geometry, material);
+
+    this.scene.add(line);
+  }
+
+  async makeMaps (width, height) {
     let mapData = Array(height).fill(0).map(() => Array(width).fill(0));
     const world = await axios.get('https://unpkg.com/world-atlas@1.1.4/world/50m.json').then(world => world.data);
 
@@ -189,7 +193,7 @@ class Globe {
     canvas.width = width;
     canvas.height = height;
     const context = canvas.getContext('2d');
-    countries = topojson.feature(world, world.objects.countries).features;
+    const countries = topojson.feature(world, world.objects.countries).features;
     const projection = d3.geoEquirectangular().scale(height / Math.PI).translate([width / 2, height / 2])//.fitSize([width, height], topojson.feature(world, world.objects.land));
     const path = d3.geoPath(projection, context);
     
@@ -305,8 +309,8 @@ class Globe {
 
   createRenderer () {
     let renderer = new THREE.WebGLRenderer({
-      // antialias: true,
-      // clearAlpha: 1
+      antialias: true,
+      clearAlpha: 1
     });
     renderer.setClearColor(0x000000);
     renderer.setPixelRatio(window.devicePixelRatio);
@@ -529,9 +533,9 @@ class Globe {
     return lineParticles;
   }
 
-  ticks () {
+  ticks (radius, height, amount = 30) {
     const ticks = new THREE.Group();
-    const lineRadius = 480;
+    const lineRadius = radius + 80;
 
     const tickMaterial = new THREE.LineBasicMaterial( { 
       linewidth: 1, 
@@ -543,7 +547,7 @@ class Globe {
     //tickMaterial.color.setRGB( .8, .2, .2 );
     tickMaterial.color.setHSL( .65, .0, 1.0 );
 
-    for (var longitude = 2*Math.PI; longitude >= Math.PI/30; longitude-=Math.PI/30) {
+    for (var longitude = 2*Math.PI; longitude >= Math.PI/amount; longitude-=Math.PI/amount) {
       //for (var latitude= 0; latitude <= Math.PI; latitude+=Math.PI/4) {
       const tickGeometry = new THREE.Geometry();
       const latitude = Math.PI /2;          
@@ -552,9 +556,9 @@ class Globe {
       const z = lineRadius * Math.sin(longitude) * Math.sin(latitude);
       const y = lineRadius * Math.cos(latitude);                        
   
-      const xb = (lineRadius + 15) * Math.cos(longitude) * Math.sin(latitude);
-      const zb = (lineRadius + 15) * Math.sin(longitude) * Math.sin(latitude);
-      const yb = (lineRadius + 15) * Math.cos(latitude); 
+      const xb = (lineRadius + height) * Math.cos(longitude) * Math.sin(latitude);
+      const zb = (lineRadius + height) * Math.sin(longitude) * Math.sin(latitude);
+      const yb = (lineRadius + height) * Math.cos(latitude); 
   
       const vectora = new THREE.Vector3( x, y, z );
       const vectorb = new THREE.Vector3( xb, yb, zb );
