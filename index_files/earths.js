@@ -8,17 +8,6 @@ const capitals = {
   //'australia': [‎-33.841049, ‎151.242188]
 };
 
-const filter = function (geo, names) {
-  var features = geo.features.filter(feature => {
-    return names.indexOf(feature.properties.name.toLowerCase()) > -1;
-  });
-  var [x, ...z] = features;
-  var union = z.reduce((a, b) => {
-    return turf.union(a, b);
-  }, x);
-  return union;
-}
-
 const XYZtoPoint = function (x, y, z, radius) {
   const latitude = 90 - (Math.acos(y / radius)) * 180 / Math.PI;
   const longitude = ((270 + (Math.atan2(x , z)) * 180 / Math.PI) % 360) -180;
@@ -85,8 +74,11 @@ const makeEarth = async function () {
   const container = document.getElementById('container');
   const gui = new dat.GUI();
   try {
-    const countries = await axios.get('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json');
-    const globe = new Globe(container, countries.data);
+    const countries = await axios.get('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json').then(result => result.data);
+    // console.log(countries)
+    //var topo = topojson.feature(countries);
+    //console.log(topo)
+    const globe = new Globe(container, countries);
     window.globe = globe;
     listeners(gui, globe);
     globe.animate();
@@ -114,7 +106,7 @@ class Globe {
     // this.dish();
     // this.background();
 
-    this.setupControls()
+    // this.setupControls()
     
     this.planet = new THREE.Group();
     
@@ -126,15 +118,15 @@ class Globe {
     this.planet.add(this.darkEarth(this.options.world.radius));
 
     // // australia ‎lat long: -33.856159, 151.215256  
-    this.planet.add(new Marker(-34.603722, -58.381592, this.options.world.radius, 'Argentina')) // argentina buenos aires
+    // this.planet.add(new Marker(-34.603722, -58.381592, this.options.world.radius, 'Argentina')) // argentina buenos aires
     // this.planet.add(new Marker(9.0831986,-79.5924029, 400))
-    // this.planet.add(this.topu({r: 1.03, color: '0x00a2ff'}))
+    // this.planet.add(this.topu(this.options.world.radius + 30))
 
     this.world = new THREE.Group();
     this.world.add(this.planet);
 
-    // this.world.rotation.z = .465;
-    // this.world.rotation.x = .3;
+    this.world.rotation.z = .465;
+    this.world.rotation.x = .3;
     //this.planet.rotation.y = 9
 
     this.scene.add(this.world);
@@ -147,6 +139,7 @@ class Globe {
     } catch (error) {
       console.log(error)
     }
+    //this.drawFlightPath()
     return;
 
     // postprocessing
@@ -291,7 +284,7 @@ class Globe {
     const me = this;
 
     function render(time) {
-      globe.rotation.y -= me.options.rotationSpeed;
+      //globe.rotation.y -= me.options.rotationSpeed;
       TWEEN.update(time);
       renderer.render(scene, camera);
     }
@@ -581,13 +574,12 @@ class Globe {
     return ticks;
   }
 
-  topu () {
+  topu (radius) {
     const options = {
-      r: 440,
       color: 0xFFFFFF
     };
     const group = new THREE.Group();
-    const geometry = new THREE.IcosahedronGeometry(options.r, 2);
+    const geometry = new THREE.IcosahedronGeometry(radius, 2);
     const basicMeterial = new THREE.MeshBasicMaterial({
       color: options.color,
       wireframe: true,
@@ -673,43 +665,15 @@ class Globe {
 
   center (latitude, longitude, delay = 2000) {
     //const verticalOffset = 0.1;
+    const { planet } = this;
     const verticalOffset = 0;
-    const tween = new TWEEN.Tween(this.planet.rotation)
+    const tween = new TWEEN.Tween(planet.rotation)
     .to({ 
       x: latitude * ( Math.PI / 180 ) - verticalOffset, 
       y: ( 90 - longitude ) * ( Math.PI / 180 ) 
     }, delay)
     .easing(TWEEN.Easing.Quartic.InOut)
     .start();
-  }
-
-  highlightRegions (mapData, regions, color = 0xff0000) {
-    const region = filter(this.countries, [].concat(regions)); //'argentina', 'australia'
-
-    let earthColors = [];
-    let colorIndex = 0;
-    var xIndex = 0;
-    for (let longitude = 2*Math.PI; longitude >= 0; longitude-=2*Math.PI/(480)) {
-      var yIndex = 0;
-      for (let latitude= 0; latitude <= Math.PI; latitude+=Math.PI/(240)) {
-        if (mapData[yIndex][xIndex] == 0) {
-          
-          const x = this.options.radius * Math.cos(longitude) * Math.sin(latitude);
-          const z = this.options.radius * Math.sin(longitude) * Math.sin(latitude);
-          const y = this.options.radius * Math.cos(latitude);
-
-          const point = XYZtoPoint(x, y, z, this.options.radius);
-
-          if(turf.inside(point, region)) {
-            this.tgeometry.colors[colorIndex].set(color)
-          }
-          colorIndex++;
-        }
-        yIndex++;
-      }
-      xIndex++;
-    }
-    this.tgeometry.colorsNeedUpdate = true;
   }
 
   darkEarth (radius) {
