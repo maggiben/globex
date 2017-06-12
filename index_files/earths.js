@@ -5,7 +5,7 @@ data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAABGdBTUEAAK
 
 const capitals = {
   'argentina': [-34.603722, -58.381592],
-  //'australia': [‎-33.841049, ‎151.242188]
+  'australia': [-33.841049, 151.242188]
 };
 
 const XYZtoPoint = function (x, y, z, radius) {
@@ -92,8 +92,8 @@ class Globe {
     this.options = {
       world: {
         radius: 500,
-        width: 480,
-        height: 240,
+        width: 240,
+        height: 120,
         uri: 'https://unpkg.com/world-atlas@1.1.4/world/50m.json'
       },
       rotationSpeed: .005
@@ -106,7 +106,8 @@ class Globe {
     // this.dish();
     // this.background();
 
-    // this.setupControls()
+    this.setupControls();
+    this.helpers();
     
     this.planet = new THREE.Group();
     
@@ -115,7 +116,7 @@ class Globe {
     // this.planet.add(this.ticks(this.options.world.radius, 15, 60));
     // this.planet.add(this.lines());
     // this.lights();
-    this.planet.add(this.darkEarth(this.options.world.radius));
+    // this.planet.add(this.darkEarth(this.options.world.radius));
 
     // // australia ‎lat long: -33.856159, 151.215256  
     // this.planet.add(new Marker(-34.603722, -58.381592, this.options.world.radius, 'Argentina')) // argentina buenos aires
@@ -125,8 +126,8 @@ class Globe {
     this.world = new THREE.Group();
     this.world.add(this.planet);
 
-    this.world.rotation.z = .465;
-    this.world.rotation.x = .3;
+    // this.world.rotation.z = .465;
+    // this.world.rotation.x = .3;
     //this.planet.rotation.y = 9
 
     this.scene.add(this.world);
@@ -162,8 +163,22 @@ class Globe {
 
   drawFlightPath() {
     const path = new Path();
-    const origin = path.latLonToVector3(-34.603722, -58.381592);
-    const destination = path.latLonToVector3(22.286394, 114.149139);
+    const origin = path.mapPoint(-34.603722, -58.381592, this.options.world.radius);
+    const destination = path.mapPoint(-33.841049, 151.242188, this.options.world.radius);
+    
+    const tube = path.arc(origin, destination);
+    console.log(tube)
+
+    const material = new THREE.LineBasicMaterial({
+      color: 0x00ff00,
+      linewidth: 3,
+      transparent: true,
+      opacity: 0.8
+    })
+    const mesh = new THREE.Mesh( tube, material );
+    this.scene.add( mesh );
+
+    /*
     const linePoints = path.bezierCurveBetween(origin, destination);
     const geometry = path.getGeom(linePoints);
 
@@ -175,6 +190,7 @@ class Globe {
     const line = new THREE.Line(geometry, material);
 
     this.scene.add(line);
+    */
   }
 
   async makeMaps (width, height) {
@@ -302,8 +318,8 @@ class Globe {
 
   createRenderer () {
     let renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      clearAlpha: 1
+      // antialias: true,
+      // clearAlpha: 1
     });
     renderer.setClearColor(0x000000);
     renderer.setPixelRatio(window.devicePixelRatio);
@@ -314,29 +330,23 @@ class Globe {
   universe () {
     this.scene = new THREE.Scene();
     // this.scene.fog = new THREE.FogExp2( 0x000000, 0.0005 );
-    this.camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 3000);
+    this.camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 5000);
     this.camera.position.z = 1400;
+    this.camera.lookAt(new THREE.Vector3(0,0,0));
     this.scene.add(this.camera);
   }
 
   setupControls () {
     const { scene, camera, renderer } = this;
-    const controls = new THREE.TrackballControls( camera );
-
-    controls.rotateSpeed = 1.0;
-    controls.zoomSpeed = 1.2;
-    controls.panSpeed = 0.8;
-
-    controls.noZoom = false;
-    controls.noPan = false;
-
-    controls.staticMoving = true;
-    controls.dynamicDampingFactor = 0.3;
-
-    controls.keys = [ 65, 83, 68 ];
-
-    // controls.addEventListener( 'change', render );
-    this.controls = controls;
+    //controls
+    const controls = new THREE.OrbitControls(camera, this.renderer.domElement);
+    controls.target.set(0, 0, 0);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.07;
+    controls.rotateSpeed = 0.04;
+    controls.zoomSpeed = 1;
+    controls.panSpeed = 0.008;
+    return controls;
   }
 
   lights () {
@@ -674,6 +684,14 @@ class Globe {
     }, delay)
     .easing(TWEEN.Easing.Quartic.InOut)
     .start();
+  }
+
+  helpers () {
+    // Helpers
+    const axes = new THREE.AxisHelper(50);
+    const helper = new THREE.GridHelper(10000, 10, 0x0000ff, 0x808080);
+    this.scene.add(axes);
+    this.scene.add(helper);
   }
 
   darkEarth (radius) {

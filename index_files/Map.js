@@ -21,7 +21,7 @@ class Map {
     const countries = await this.makeCountries(this.options);
     const { points, geometry } = this.makeGlobe(land, countries, this.options);
     this.geometries.land = geometry;
-    this.highlightRegions(['argentina', 'brazil', 'china', 'angola'], this.geometries.land, land, this.options)
+    this.highlightRegions(['argentina', 'brazil', 'china', 'angola'], this.geometries.land, land, countries, this.options)
     return planet.add(points);
   }
 
@@ -65,7 +65,7 @@ class Map {
     return this.makeMapData(context);
   }
 
-  async makeCountriesXXX({width, height}) {
+  async makeCountries({width, height}) {
     const {context, path} = this.makeProjectionContext({width, height});
     const world = await axios.get('https://unpkg.com/world-atlas@1.1.4/world/50m.json').then(result => result.data);
 
@@ -80,7 +80,7 @@ class Map {
     return this.makeMapData(context);
   }
 
-  async makeCountries({width, height}) {
+  async makeCountriesX({width, height}) {
     const {context, path} = this.makeProjectionContext({width, height});
     const world = await axios.get('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json').then(result => result.data);
 
@@ -112,10 +112,15 @@ class Map {
     return union;
   }
 
-  async highlightRegions (regions, geometry, map, {width, height, radius, color}) {
-    window.geometry = geometry;
+  async getRegions (regions) {
     const countries = await axios.get('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json').then(result => result.data);
-    const region = this.filter(countries, [].concat(regions));
+    return this.filter(countries, [].concat(regions));
+  }
+
+  async highlightRegions (regions, geometry, land, countries, {width, height, radius, color}) {
+    window.geometry = geometry;
+    //const countries = await axios.get('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json').then(result => result.data);
+    const region = await this.getRegions(regions);//this.filter(countries, [].concat(regions));
 
     let earthColors = [];
     let colorIndex = 0;
@@ -124,7 +129,7 @@ class Map {
     for (let longitude = 2*Math.PI; longitude >= 0; longitude-=2*Math.PI/(width)) {
       let yIndex = 0;
       for (let latitude = 0; latitude <= Math.PI; latitude+=Math.PI/(height)) {
-        if (map[yIndex][xIndex] == 0) {
+        if (land[yIndex][xIndex] == 0) {
           
           const x = radius * Math.cos(longitude) * Math.sin(latitude);
           const z = radius * Math.sin(longitude) * Math.sin(latitude);
@@ -132,7 +137,7 @@ class Map {
 
           const point = this.XYZtoPoint(x, y, z, radius);
 
-          if(turf.inside(point, region)) {
+          if(!countries[yIndex][xIndex] == 0 && turf.inside(point, region)) {
             colorPoints.push(colorIndex);
             //geometry.colors[colorIndex].set(0x63d0e9);
           }
@@ -143,9 +148,9 @@ class Map {
       xIndex++;
     }
     // geometry.colorsNeedUpdate = true; 
-    new TWEEN.Tween({ r: 0, g: 0, b: 0 })
+    new TWEEN.Tween({ r: 1, g: 0, b: 0 })
       .delay(200)
-      .to({ r: 1, g: 1, b: 1 }, 500)
+      .to({ r: 1, g: 1, b: 1 }, 1000)
       .easing(TWEEN.Easing.Quartic.Out)
       .onUpdate(function(progress) {
         colorPoints.forEach(colorIndex => {

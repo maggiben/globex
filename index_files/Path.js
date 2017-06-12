@@ -1,6 +1,29 @@
 class Path {
-  constructor (from, to) {
+  constructor (start, end) {
 
+  }
+
+
+  drawPath (start, end) {
+    const lineSegments = 150;
+    const geometry = new THREE.Geometry();
+    const material = materialSpline = new THREE.LineBasicMaterial({
+      color: 0xFF0000,
+      transparent: true,
+      linewidth: 3,
+      opacity: .5
+    });
+
+
+    const latdist = (start - previous.lat)/lineSegments;
+    const londist = (lon - previous.lon)/lineSegments;
+
+    for(let i = 0; j < lineSegments; j++){
+      const vector_a = this.latLonToVector3(start);
+      geometry.vertices.push(vector_a)
+    }
+
+    geometry.verticesNeedUpdate = true
   }
 
   arc(beg, end){
@@ -28,7 +51,7 @@ class Path {
     curve.add(splineCurveA);
     curve.add(splineCurveB);
 
-    return new THREE.TubeBufferGeometry(curve, 100, 0.5, 20, false );
+    return new THREE.TubeBufferGeometry(curve, 100, 2, 8, false );
   }
 
   // Takes two points on the globe and turns them into a bezier curve point array
@@ -69,20 +92,33 @@ class Path {
   }
 
   // Calculate a Vector3 from given lat/long
-  latLonToVector3(latitude, longitude) {
-    longitude = longitude + 10;
-    latitude = latitude - 2;
+  latLonToVector3(latitude, longitude, radius) {
+    //longitude = longitude + 10;
+    // latitude = latitude - 2;
     const phi = (Math.PI / 2) - latitude * Math.PI / 180 - Math.PI * 0.01;
     const theta = 2 * Math.PI - longitude * Math.PI / 180 + Math.PI * 0.06;
-    const rad = 420;
 
-    const x = Math.sin(phi) * Math.cos(theta) * rad;
-    const y = Math.cos(phi) * rad;
-    const z = Math.sin(phi) * Math.sin(theta) * rad;
+    const x = Math.sin(phi) * Math.cos(theta) * radius;
+    const y = Math.cos(phi) * radius;
+    const z = Math.sin(phi) * Math.sin(theta) * radius;
 
     return new THREE.Vector3(x, y, z);
   }
 
+  mapPoint (latitude, longitude, radius) {
+    let curLat = 90 - latitude;
+    let curLong = 180 - longitude;
+    
+    curLong *= Math.PI/180;
+    curLat *= Math.PI/180;
+         
+    const x = radius * Math.cos(curLong) * Math.sin(curLat);
+    const z = radius * Math.sin(curLong) * Math.sin(curLat);
+    const y = radius * Math.cos(curLat); 
+
+    return new THREE.Vector3(x, y, z);
+  }
+  
   getGeom(points) {
     const geometry = new THREE.Geometry();
     let geoms = [];
