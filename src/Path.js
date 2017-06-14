@@ -1,29 +1,8 @@
 class Path {
-  constructor (start, end) {
-
-  }
-
-
-  drawPath (start, end) {
-    const lineSegments = 150;
-    const geometry = new THREE.Geometry();
-    const material = materialSpline = new THREE.LineBasicMaterial({
-      color: 0xFF0000,
-      transparent: true,
-      linewidth: 3,
-      opacity: .5
-    });
-
-
-    const latdist = (start - previous.lat)/lineSegments;
-    const londist = (lon - previous.lon)/lineSegments;
-
-    for(let i = 0; j < lineSegments; j++){
-      const vector_a = this.latLonToVector3(start);
-      geometry.vertices.push(vector_a)
-    }
-
-    geometry.verticesNeedUpdate = true
+  constructor (origin, destination, radius) {
+    this.origin = this.mapPoint(origin.latitude, origin.longitude, radius);
+    this.destination = this.mapPoint(destination.latitude, destination.longitude, radius);
+    this.route = this.buildPath(this.origin, this.destination);
   }
 
   arc(beg, end){
@@ -56,8 +35,7 @@ class Path {
 
   // Takes two points on the globe and turns them into a bezier curve point array
   bezierCurveBetween(start, end) {
-    try {
-      const distanceBetweenPoints = start.clone().sub(end).length();
+    const distanceBetweenPoints = start.clone().sub(end).length();
     const anchorHeight = 600 + distanceBetweenPoints * 0.4;
 
     var mid = start.clone().lerp(end, 0.5);
@@ -65,7 +43,6 @@ class Path {
     mid.normalize();
     mid.multiplyScalar(midLength + distanceBetweenPoints * 0.4);
 
-    console.log('middle')
     var normal = (new THREE.Vector3()).subVectors(start, end);
     normal.normalize();
 
@@ -80,17 +57,117 @@ class Path {
     const splineCurveA = new THREE.CubicBezierCurve3(start, startAnchor, midStartAnchor, mid);
     const splineCurveB = new THREE.CubicBezierCurve3(mid, midEndAnchor, endAnchor, end);
 
-    const vertexCountDesired = Math.floor(distanceBetweenPoints * 0.02 + 6);
+    const vertexCountDesired = Math.floor(distanceBetweenPoints * 0.02 + 60);
 
     var points = splineCurveA.getPoints(vertexCountDesired);
     points = points.splice(0, points.length - 1);
     points = points.concat(splineCurveB.getPoints(vertexCountDesired));
-  } catch (error) {
-    console.log(error)
-  }    
     return points;
   }
 
+  buildPath2 (origin, destination) {
+    const points = this.bezierCurveBetween(origin, destination);
+    const geometry = new THREE.Geometry();
+    
+    for (let i = 0; i < points.length; i++) {
+      const vector = new THREE.Vector3( points[i].x, points[i].y, points[i].z );
+      geometry.vertices.push(vector);
+    }
+
+    const loader = new THREE.TextureLoader();
+    const material = new THREE.PointsMaterial({ 
+      size: 12,
+      map: loader.load( "textures/sprites/circle.png" ) , 
+      depthTest: false,  
+      blending: THREE.AdditiveBlending, 
+      transparent : true 
+    });
+
+    material.color.setHSL( .55, .45, 1.4 );
+
+    const lineParticles = new THREE.Points( geometry, material );
+    //lineParticles.sortParticles = true;
+    lineParticles.updateMatrix();
+
+    return lineParticles;
+  }
+
+  buildPath (origin, destination) {
+    const points = this.bezierCurveBetween(origin, destination);
+    const geometry = new THREE.Geometry();
+    this.geometry = geometry;
+    
+    for (let i = 0; i < points.length; i++) {
+      // const vector = new THREE.Vector3( points[i].x, points[i].y, points[i].z );
+      const vector = new THREE.Vector3( 0, 0, 0 );
+      geometry.vertices.push(vector);
+    }
+
+    const loader = new THREE.TextureLoader();
+    const material = new THREE.LineBasicMaterial({ 
+      linewidth: 4,
+      color: 0xFF0000,
+      blending: THREE.AdditiveBlending, 
+      transparent: true,
+      opacity: 1
+    });
+
+    const fillTo = function(start, end, point) {
+      for(let i = start; i < end; i++) {
+        geometry.vertices[i].x = point.x; 
+        geometry.vertices[i].y = point.y; 
+        geometry.vertices[i].z = point.z;
+      }
+    }
+
+    const line = new THREE.Line( geometry, material );
+    line.geometry.dynamic = true;
+
+    window.ttween = new TWEEN.Tween({amount: 0})
+    .to({amount: points.length}, 5000)
+    .onUpdate(function (progress) {
+      const amount = Math.floor(this.amount);
+      for (let i = 0; i < amount; i++) {
+        geometry.vertices[i].x = points[i].x;
+        geometry.vertices[i].y = points[i].y; 
+        geometry.vertices[i].z = points[i].z;
+        fillTo(i, points.length, points[i])
+      }
+      line.geometry.verticesNeedUpdate = true;
+    })
+    .easing(TWEEN.Easing.Quartic.Out)
+    .delay(2000)
+    .start();
+
+    return line;
+  }
+
+  remove () {
+    // const geometry = this.geometry;
+    // const line = this.route;
+    
+    // console.log('route', this.route)
+    // new TWEEN.Tween({amount: 0})
+    // .to({amount: points.length}, 5000)
+    // .onUpdate(function (progress) {
+    //   const amount = Math.floor(this.amount);
+    //   for (let i = 0; i < amount; i++) {
+    //     geometry.vertices[i].x = points[i].x;
+    //     geometry.vertices[i].y = points[i].y; 
+    //     geometry.vertices[i].z = points[i].z;
+    //     fillTo(i, points.length, points[i])
+    //   }
+    //   line.geometry.verticesNeedUpdate = true;
+    // })
+    // .easing(TWEEN.Easing.Quartic.Out)
+    // .delay(2000)
+    // .start();
+
+    this.route.parent.remove(this.route);
+    this.route.geometry.dispose();
+    this.route.material.dispose();
+  }
+  
   // Calculate a Vector3 from given lat/long
   latLonToVector3(latitude, longitude, radius) {
     //longitude = longitude + 10;
@@ -119,33 +196,4 @@ class Path {
     return new THREE.Vector3(x, y, z);
   }
   
-  getGeom(points) {
-    const geometry = new THREE.Geometry();
-    let geoms = [];
-    (function () {
-      for (let i = 0; i < 500; i++) {
-        geoms[i] = [];
-      }
-    })();
-    if (geoms[points.length].length > 0) {
-      geometry = geoms[points.length].pop();
-
-      let point = points[0];
-      for (let i = 0; i < points.length; i++) {
-        geometry.vertices[i].set(0, 0, 0);
-      }
-      geometry.verticesNeedUpdate = true;
-
-      return geometry;
-    }
-
-    geometry.dynamic = true;
-    geometry.size = 10.05477225575;
-
-    for (let i = 0; i < points.length; i++) {
-      geometry.vertices.push(new THREE.Vector3());
-    }
-
-    return geometry;
-  }
 }

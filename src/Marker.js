@@ -25,24 +25,24 @@ class Marker {
     const label = new Label(caption, latitude, longitude, radius);
 
     marker.add(this.rings(latitude, longitude, radius));
-    marker.add(this.line(latitude, longitude, radius));
-    marker.add(this.sphere(latitude, longitude, radius));
+    marker.add(this.line(latitude, longitude, radius + 22.5));
+    marker.add(this.sphere(latitude, longitude, radius + 20));
     marker.add(label);
     return marker;
   }
 
-  sphere(latitude, longitude, radius) {
+  sphere(latitude, longitude, radius, altitude) {
     const sphere = new THREE.SphereGeometry( 3, 16, 16 )
     const material = new THREE.LineBasicMaterial({ 
       color: 0xFFFFFF,
       linewidth: 1, 
       depthTest: false,  
       blending: THREE.AdditiveBlending, 
-      transparent : true,
+      transparent: true,
       opacity: 0.2
     });
 
-    const point = this.mapPoint(latitude, longitude, radius + 20);
+    const point = this.mapPoint(latitude, longitude, radius + altitude);
     const mesh = new THREE.Mesh( sphere, material );
     mesh.position.set(point.x, point.y, point.z);
     new TWEEN.Tween(material)
@@ -55,21 +55,27 @@ class Marker {
     return mesh;
   }
 
-  line (latitude, longitude, radius) {
+  line (latitude, longitude, radius, height) {
     const geometry = new THREE.Geometry();
     const material = new THREE.LineBasicMaterial({ 
       color: 0xFFFFFF,
       linewidth: 1, 
       depthTest: false,  
       blending: THREE.AdditiveBlending, 
-      transparent : true,
+      transparent: true,
       opacity: 1
     });
 
+    const points = [radius, (radius + height)].forEach(z => {
+      const point = this.mapPoint(latitude, longitude, z);
+      return geometry.vertices.push(new THREE.Vector3( point.x, point.y, point.z ));
+    })
+    /*
     const coordsa = this.mapPoint(latitude, longitude, radius);
     geometry.vertices.push( new THREE.Vector3( coordsa.x, coordsa.y, coordsa.z ) );
-    const coordsb = this.mapPoint(latitude, longitude, radius + 20);
+    const coordsb = this.mapPoint(latitude, longitude, radius + height);
     geometry.vertices.push( new THREE.Vector3( coordsb.x, coordsb.y, coordsb.z ) );
+    */
 
     return new THREE.Line(geometry, material, THREE.LineStrip);
   }
@@ -122,7 +128,7 @@ class Marker {
     return texture;
   }
 
-  rings (latitude, longitude, radius) {
+  rings (latitude, longitude, radius, altitude) {
     const geometry = new THREE.CircleGeometry( 132, 8 );
     geometry.applyMatrix( new THREE.Matrix4().makeRotationFromEuler(new THREE.Vector3(Math.PI / 2, Math.PI, 0)));
     const material = new THREE.MeshBasicMaterial({
@@ -137,9 +143,11 @@ class Marker {
     });
 
     const mesh = new THREE.Mesh( geometry, material );
-    const coords = this.mapPoint(latitude, longitude, radius + 22.5);
+    const coords = this.mapPoint(latitude, longitude, radius + altitude);
     mesh.position.set(coords.x, coords.y, coords.z);
-    mesh.lookAt(new THREE.Vector3(0,0,0));
+
+    // Look at the center of the globe
+    mesh.lookAt(new THREE.Vector3(0, 0, 0));
 
     return mesh;
   }

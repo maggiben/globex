@@ -20,9 +20,11 @@ class Map {
     const atlas = await axios.get('https://unpkg.com/world-atlas@1.1.4/world/50m.json').then(result => result.data);
     const land = await this.makeLand(atlas, this.options);
     const countries = await this.makeCountries(atlas, this.options);
-    const { points, geometry } = this.makeGlobe(land, countries, this.options);
+    // Draw borders
+    // const { points, geometry } = this.makeGlobe(land, countries, this.options);
+    const { points, geometry } = this.makeGlobe(land, null, this.options);
     this.geometries.land = geometry;
-    this.highlightRegions(['argentina', 'brazil', 'china', 'angola'], this.geometries.land, land, countries, this.options)
+    //this.highlightRegions(['argentina', 'brazil', 'china', 'angola'], this.geometries.land, land, countries, this.options)
     return planet.add(points);
   }
 
@@ -134,9 +136,12 @@ class Map {
 
           const point = this.XYZtoPoint(x, y, z, radius);
 
-          if(!countries[yIndex][xIndex] == 0 && turf.inside(point, region)) {
+
+          if(countries && !countries[yIndex][xIndex] == 0 && turf.inside(point, region)) {
             colorPoints.push(colorIndex);
             //geometry.colors[colorIndex].set(0x63d0e9);
+          } else {
+            colorPoints.push(colorIndex);
           }
           colorIndex++;
         }
@@ -144,12 +149,29 @@ class Map {
       }
       xIndex++;
     }
-    // geometry.colorsNeedUpdate = true; 
+    // geometry.colorsNeedUpdate = true;
+
+    // const tweens = colorPoints.map(colorIndex => {
+    //   return new TWEEN.Tween({ r: 1, g: 0, b: 0 })
+    //     .delay(0)
+    //     .to({ r: 1, g: 1, b: 1 }, 2)
+    //     .easing(TWEEN.Easing.Quartic.Out)
+    //     .onUpdate(function (progress) {
+    //       geometry.colors[colorIndex].setRGB(this.r, this.g, this.b);
+    //       geometry.colorsNeedUpdate = true;
+    //     })
+    // });
+
+    // for(let i = 0; i < tweens.length - 1; i++) {
+    //   tweens[i].chain(tweens[i + 1])
+    // }
+    // tweens[0].delay(2000).start();
+
     new TWEEN.Tween({ r: 1, g: 0, b: 0 })
       .delay(200)
       .to({ r: 1, g: 1, b: 1 }, 1000)
       .easing(TWEEN.Easing.Quartic.Out)
-      .onUpdate(function(progress) {
+      .onUpdate(function (progress) {
         colorPoints.forEach(colorIndex => {
           geometry.colors[colorIndex].setRGB(this.r, this.g, this.b);
         });
@@ -209,12 +231,18 @@ class Map {
         const z = radius * Math.sin(longitude) * Math.sin(latitude);
         const y = radius * Math.cos(latitude);
 
-        if (land[yIndex][xIndex] == 0) {
+        if (land[yIndex][xIndex] == 0 && countries) {
           color = countries[yIndex][xIndex] == 0 ? 0x63d0e9 : 0x0a3843;
           geometry.vertices.push(new THREE.Vector3(x, y, z));
           earthColors[ colorIndex ] = new THREE.Color( color );
           colorIndex++;
-        }/* else if (countries[yIndex][xIndex] == 0) {
+        } else if (land[yIndex][xIndex] == 0) {
+          geometry.vertices.push(new THREE.Vector3(x, y, z));
+          earthColors[ colorIndex ] = new THREE.Color( color );
+          colorIndex++;
+        }
+
+        /* else if (countries[yIndex][xIndex] == 0) {
           geometry.vertices.push(new THREE.Vector3(x, y, z));
           earthColors[ colorIndex ] = new THREE.Color( 0xFFFFFF );
           colorIndex++;
