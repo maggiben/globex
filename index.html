@@ -13,91 +13,25 @@
 		<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r16/Stats.min.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/85/three.min.js"></script>
- 		<script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/16.6.0/Tween.min.js"></script>
+ 		<script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/16.7.0/Tween.min.js"></script>
  		<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.1/axios.min.js"></script>
  		<script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/4.3.1/turf.min.js"></script>
  		<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.9.1/d3.min.js"></script>
- 		<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.0/topojson.min.js"></script>
  		<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-geo-projection/2.1.2/d3-geo-projection.min.js"></script>
  		<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.0/topojson.min.js"></script>
  		<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"></script>
  		<script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.6.5/dat.gui.min.js"></script>
 
-
- 		<!-- <script src="https://rawgit.com/mrdoob/three.js/master/examples/js/controls/TrackballControls.js"></script> -->
  		<script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
 
-		<script type="text/javascript" src="./metadata.js?asd=0909"></script> 
-		<script type="text/javascript" src="./index_files/geoHelpers.js?asdf=123"></script>
-		<script type="text/javascript" src="./index_files/earths.js?34=asdf"></script> 
-		<script type="text/javascript" src="./index_files/Marker.js?asdf=asdf"></script>
-		<script type="text/javascript" src="./index_files/Stage.js?asdf=wqet"></script>
-		<script type="text/javascript" src="./index_files/Label.js?asdf=fdgh"></script>
-		<script type="text/javascript" src="./index_files/Path.js?a33sdf=dsagf"></script>
-		<script type="text/javascript" src="./index_files/Map.js?a33sdf=asdf3"></script>
-
-		<!-- ---------------- Custom Shader Code ------------------------ -->
-		<script id="vertexShader" type="x-shader/x-vertex">
-			uniform vec3 viewVector;
-			uniform float c;
-			uniform float p;
-			varying float intensity;
-			void main() 
-			{
-			    vec3 vNormal = normalize( normalMatrix * normal );
-				vec3 vNormel = normalize( normalMatrix * viewVector );
-				intensity = pow( c - dot(vNormal, vNormel), p );
-				
-			    gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-			}
-		</script>
-
-		<!-- fragment shader a.k.a. pixel shader -->
-		<script id="fragmentShader" type="x-shader/x-vertex"> 
-			uniform vec3 glowColor;
-			varying float intensity;
-			void main() 
-			{
-				vec3 glow = glowColor * intensity;
-			    gl_FragColor = vec4( glow, 1.0 );
-			}
-		</script>
-
-		<script id="pointVertexShader" type="x-shader/x-vertex">
-			precision highp float;
-			precision highp int;
-			attribute vec3 color;
-			attribute float pSize;
-			attribute float pOpacity;
-			uniform float size;
-			uniform float scale;
-			varying vec3 vColor;
-			varying float vOpacity;
-
-			void main() {
-				vColor = color;
-				vOpacity = pOpacity;
-				vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
-				gl_PointSize = 2.0 * pSize * size * ( scale / length( mvPosition.xyz ) );
-				gl_Position = projectionMatrix * mvPosition;
-			}
-		</script>
-
-		<script id="pointFragmentShader" type="x-shader/x-fragment">
-			precision highp float;
-			precision highp int;
-			uniform vec3 psColor;
-			uniform float opacity;
-			varying vec3 vColor;
-			varying float vOpacity;
-			uniform sampler2D map;
-
-			void main() {
-				gl_FragColor = vec4( psColor, vOpacity );
-				gl_FragColor = gl_FragColor * texture2D( map,vec2( gl_PointCoord.x, 1.0 - gl_PointCoord.y ) );
-				gl_FragColor = gl_FragColor * vec4( vColor, 1.0 );
-			}
-  		</script>
+ 		<!-- Own Scripts -->
+		<script type="text/javascript" src="./src/geoHelpers.js?asdf=123"></script>
+		<script type="text/javascript" src="./src/earths.js?34=asdf"></script> 
+		<script type="text/javascript" src="./src/Marker.js?asdf=asdf"></script>
+		<script type="text/javascript" src="./src/Stage.js?asdf=wqet"></script>
+		<script type="text/javascript" src="./src/Label.js?asdf=fdgh"></script>
+		<script type="text/javascript" src="./src/Path.js?a33sdf=dsagf"></script>
+		<script type="text/javascript" src="./src/Map.js?a33sdf=asdf3"></script>
 
 		<style>
 			#canvas {
