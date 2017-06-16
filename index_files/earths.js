@@ -92,8 +92,8 @@ class Globe {
     this.options = {
       world: {
         radius: 500,
-        width: 240,
-        height: 120,
+        width: 480,
+        height: 240,
         uri: 'https://unpkg.com/world-atlas@1.1.4/world/50m.json'
       },
       rotationSpeed: .005
@@ -107,27 +107,38 @@ class Globe {
     // this.background();
 
     this.setupControls();
-    this.helpers();
+    // this.helpers();
     
     this.planet = new THREE.Group();
     
-    // this.planet.add(this.core());
+    // this.planet.add(this.core(this.options.world.radius));
     // this.planet.add(this.orbit(this.options.world.radius, 600));
-    // this.planet.add(this.ticks(this.options.world.radius, 15, 60));
+    // this.planet.add(this.ticks(this.options.world.radius, 15, 45));
+    // this.planet.add(this.drawFlightPath())
+    this.fireMaterial = this.fire();
+    try {
+      console.log(this.fireMaterial)
+      const meshX = new THREE.Mesh(new THREE.IcosahedronBufferGeometry( 120, 5 ), this.fireMaterial );
+      this.planet.add( meshX );
+    } catch (error) {
+      console.log(error)
+    }
+
     // this.planet.add(this.lines());
     // this.lights();
     // this.planet.add(this.darkEarth(this.options.world.radius));
 
     // // australia ‎lat long: -33.856159, 151.215256  
     // this.planet.add(new Marker(-34.603722, -58.381592, this.options.world.radius, 'Argentina')) // argentina buenos aires
+    // this.planet.add(new Marker(-33.841049, 151.242188, this.options.world.radius, 'Sidney')) // argentina buenos aires
     // this.planet.add(new Marker(9.0831986,-79.5924029, 400))
-    // this.planet.add(this.topu(this.options.world.radius + 30))
+    this.planet.add(this.topu(this.options.world.radius + 30))
 
     this.world = new THREE.Group();
     this.world.add(this.planet);
 
-    // this.world.rotation.z = .465;
-    // this.world.rotation.x = .3;
+    this.world.rotation.z = .465;
+    this.world.rotation.x = .3;
     //this.planet.rotation.y = 9
 
     this.scene.add(this.world);
@@ -140,7 +151,6 @@ class Globe {
     } catch (error) {
       console.log(error)
     }
-    //this.drawFlightPath()
     return;
 
     // postprocessing
@@ -161,6 +171,29 @@ class Globe {
 
   }
 
+
+  fire () {
+    // return new THREE.MeshBasicMaterial({
+    //   color: 0xFF0000,
+    //   wireframe: true,
+    //   transparent: true,
+    //   blending: THREE.AdditiveBlending, 
+    //   opacity: 0.8
+    // });
+    // view-source:https://www.clicktorelease.com/code/perlin/explosion.html
+    const loader = new THREE.TextureLoader();
+    const material = new THREE.ShaderMaterial({
+      uniforms: {
+        // tExplosion: { type: "t", value: loader.load('images/explosion.png')},
+        time: { type: "f", value: 0.0 },
+        weight: { type: "f", value: 10.0 }
+      },
+      vertexShader: document.getElementById( 'vertexShader' ).textContent,
+      fragmentShader: document.getElementById( 'fragmentShader' ).textContent
+    });
+    return material;
+  }
+
   drawFlightPath() {
     const path = new Path();
     const origin = path.mapPoint(-34.603722, -58.381592, this.options.world.radius);
@@ -176,7 +209,7 @@ class Globe {
       opacity: 0.8
     })
     const mesh = new THREE.Mesh( tube, material );
-    this.scene.add( mesh );
+    return mesh;
 
     /*
     const linePoints = path.bezierCurveBetween(origin, destination);
@@ -298,9 +331,17 @@ class Globe {
     const { scene, camera, renderer } = this;
     const globe = this.planet;
     const me = this;
+    const start = new Date();
+
+    const tween = new TWEEN.Tween(globe.rotation)
+    .to({ 
+      y: Math.PI * 2
+    }, 15000)
+    .repeat(Infinity)
+    .start();
 
     function render(time) {
-      //globe.rotation.y -= me.options.rotationSpeed;
+      me.fireMaterial.uniforms[ 'time' ].value = .00025 * ( Date.now() - start );
       TWEEN.update(time);
       renderer.render(scene, camera);
     }
@@ -318,7 +359,7 @@ class Globe {
 
   createRenderer () {
     let renderer = new THREE.WebGLRenderer({
-      // antialias: true,
+      antialias: true,
       // clearAlpha: 1
     });
     renderer.setClearColor(0x000000);
@@ -455,11 +496,12 @@ class Globe {
 
     */
   }
+
   // 
   core (radius, amount = 1800) {
     const coreGeometry = new THREE.Geometry();
         
-    for (var i = 0; i < 1800; i++) {
+    for (var i = 0; i < 18000; i++) {
 
       let spread = Math.random() * radius;
       let longitude = Math.PI - (Math.random() * (2*Math.PI));
@@ -540,20 +582,20 @@ class Globe {
     const ticks = new THREE.Group();
     const lineRadius = radius + 80;
 
-    const tickMaterial = new THREE.LineBasicMaterial( { 
+    const material = new THREE.LineBasicMaterial( { 
       linewidth: 1, 
       depthTest: false,  
       blending: THREE.AdditiveBlending, 
       transparent : true,
       opacity: 0
     });
-    //tickMaterial.color.setRGB( .8, .2, .2 );
-    tickMaterial.color.setHSL( .65, .0, 1.0 );
+    //material.color.setRGB( .8, .2, .2 );
+    material.color.setHSL( .65, .0, 1.0 );
 
     for (var longitude = 2*Math.PI; longitude >= Math.PI/amount; longitude-=Math.PI/amount) {
       //for (var latitude= 0; latitude <= Math.PI; latitude+=Math.PI/4) {
-      const tickGeometry = new THREE.Geometry();
-      const latitude = Math.PI /2;          
+      const geometry = new THREE.Geometry();
+      const latitude = Math.PI / 2;          
                           
       const x = lineRadius * Math.cos(longitude) * Math.sin(latitude);
       const z = lineRadius * Math.sin(longitude) * Math.sin(latitude);
@@ -566,14 +608,14 @@ class Globe {
       const vectora = new THREE.Vector3( x, y, z );
       const vectorb = new THREE.Vector3( xb, yb, zb );
       
-      tickGeometry.vertices.push( vectora );
-      tickGeometry.vertices.push( vectorb );
+      geometry.vertices.push( vectora );
+      geometry.vertices.push( vectorb );
       
-      const tick = new THREE.Line( tickGeometry, tickMaterial, THREE.LineStrip );
-      ticks.add( tick );
+      const tick = new THREE.Line(geometry, material, THREE.LineStrip);
+      ticks.add(tick);
     }
 
-    new TWEEN.Tween( tickMaterial)
+    new TWEEN.Tween( material)
       .to({
         opacity: .5
       }, 2000)
@@ -608,7 +650,6 @@ class Globe {
     });
     const points = new THREE.Points(geometry, pointMaterial);
     group.add(mesh, points);
-    console.log('topu2')
     return group;
   }
 

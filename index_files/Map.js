@@ -3,7 +3,7 @@ class Map {
     this.options = Object.assign({}, {
       radius: 500,
       width: 960,
-      height: 480,
+      height: 360,
       color: 0x1B9EBC,
       uri: 'https://unpkg.com/world-atlas@1.1.4/world/50m.json'
     }, {width, height, radius});
@@ -17,11 +17,12 @@ class Map {
   }
 
   async buildMap(planet) {
+    // https://stackoverflow.com/questions/13442153/errors-extruding-shapes-with-three-js
     const land = await this.makeLand(this.options);
     const countries = await this.makeCountries(this.options);
     const { points, geometry } = this.makeGlobe(land, countries, this.options);
     this.geometries.land = geometry;
-    this.highlightRegions(['argentina', 'brazil', 'china', 'angola'], this.geometries.land, land, countries, this.options)
+    this.highlightRegions(['argentina', 'australia'], this.geometries.land, land, countries, this.options)
     return planet.add(points);
   }
 
