@@ -1,12 +1,17 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const timesyncServer = require('timesync/server');
-const cors = require('cors');
+import config from 'config';
+import express from 'express';
+import bodyParser from 'body-parser';
+import timesyncServer from 'timesync/server';
+import cookieParser from 'cookie-parser'
+import cors from 'cors';
 
 var PORT = 8080;
 
-var app = express();
+const app = express();
+// App middleware
 app.use(bodyParser.json()); // for parsing application/json
+app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
+app.use(cookieParser())
 app.use(cors()); // for parsing application/json
 
 app.get('/', function (req, res) {
@@ -28,7 +33,7 @@ app.post('/timesync', function (req, res) {
 //app.use('/timesync/', express.static(__dirname + '/../../../dist'));
 
 app.post('/timesync', function (req, res) {
-  var data = {
+  const data = {
     id: (req.body && 'id' in req.body) ? req.body.id : null,
     result: Date.now()
   };
@@ -37,3 +42,5 @@ app.post('/timesync', function (req, res) {
 
 app.listen(PORT);
 console.log('Server listening at http://localhost:' + PORT);
+
+export default app;

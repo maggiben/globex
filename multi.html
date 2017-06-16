@@ -32,9 +32,9 @@
   </head>
   <body>
     <iframe class="nw" data-position="nw"></iframe>
-    <!-- <iframe class="ne" data-position="ne"></iframe> -->
-    <!-- <iframe class="sw" data-position="sw"></iframe> -->
-    <!-- <iframe class="se" data-position="se"></iframe> -->
+    <iframe class="ne" data-position="ne"></iframe>
+    <iframe class="sw" data-position="sw"></iframe>
+    <iframe class="se" data-position="se"></iframe>
     <!-- <iframe class="nw" src="./index.html?globeId=globe&x=-320&y=-240"></iframe>
     <iframe class="ne" src="./index.html?globeId=globe&x=320&y=-240"></iframe>
     <iframe class="sw" src="./index.html?globeId=globe&x=-320&y=240"></iframe>
@@ -51,24 +51,24 @@
         const element = elements[i];
         const rect = element.getBoundingClientRect();
         //element.src = `./index.html?globeId=globe&fullWidth=${width}&fullHeight=${height}&x=${width / 2}&y=${height / 2}`; // repeat
-        element.src = `./index.html?globeId=globe`;
+        // element.src = `./index.html?globeId=globe`;
         // element.src = `./index.html?globeId=globe&x=-${-(width / 2)}&y=${-(height / 2)}`;
 
 
-        // switch (element.dataset.position) {
-        //   case 'nw':
-        //     element.src = `./index.html?globeId=globe&fullWidth=${width}&fullHeight=${height}&x=0&y=0`;
-        //     break;
-        //   case 'ne':
-        //     element.src = `./index.html?globeId=globe&fullWidth=${width}&fullHeight=${height}&x=${width / 2}&y=0`;
-        //     break;
-        //   case 'sw':
-        //     element.src = `./index.html?globeId=globe&fullWidth=${width}&fullHeight=${height}&x=0&y=${height / 2}`;
-        //     break;
-        //   case 'se':
-        //     element.src = `./index.html?globeId=globe&fullWidth=${width}&fullHeight=${height}&x=${width / 2}&y=${height / 2}`;
-        //     break;
-        // }
+        switch (element.dataset.position) {
+          case 'nw':
+            element.src = `./index.html?globeId=globe&fullWidth=${width}&fullHeight=${height}&x=0&y=0`;
+            break;
+          case 'ne':
+            element.src = `./index.html?globeId=globe&fullWidth=${width}&fullHeight=${height}&x=${width / 2}&y=0`;
+            break;
+          case 'sw':
+            element.src = `./index.html?globeId=globe&fullWidth=${width}&fullHeight=${height}&x=0&y=${height / 2}`;
+            break;
+          case 'se':
+            element.src = `./index.html?globeId=globe&fullWidth=${width}&fullHeight=${height}&x=${width / 2}&y=${height / 2}`;
+            break;
+        }
       }
     </script>
   </body>

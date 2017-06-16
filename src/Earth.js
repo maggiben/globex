@@ -138,7 +138,7 @@ class Globe {
 
     container.addEventListener('center', event => {
       const { latitude, longitude } = event.detail.place;
-      const { offset } = event.detail;
+      const { offset, now } = event.detail;
       this.place = event.detail.place;
       // this.center(latitude, longitude)
       this.toggle = true;

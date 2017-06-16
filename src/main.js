@@ -64,7 +64,7 @@ const animateId = function () {
 }
 
 ts.on('sync', function (state) {
-  let delay = 0;
+  let delay = 2000;
   if (state === 'end') {
     console.log(ts.offset);
     delay += ts.offset;
@@ -77,5 +77,3 @@ ts.on('sync', function (state) {
 ts.on('change', function (offset) {
   // console.log('changed offset: ', offset);
 });
-
-  // console.log(document)
