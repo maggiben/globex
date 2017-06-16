@@ -26,20 +26,21 @@
   <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
 
   <!-- Own Scripts -->
-  <script type="text/javascript" src="./src/geoHelpers.js?asdf=rxrxrx"></script>
-  <script type="text/javascript" src="./src/Earth.js?asdf=rxrxrx"></script>
-  <script type="text/javascript" src="./src/Widgets.js?asdf=rxrxrx"></script>
-  <script type="text/javascript" src="./src/Marker.js?asdf=rxrxrx"></script>
-  <script type="text/javascript" src="./src/Stage.js?asdf=rxrxrx"></script>
-  <script type="text/javascript" src="./src/Label.js?asdf=rxrxrx"></script>
-  <script type="text/javascript" src="./src/Path.js?asdf=rxrxrx"></script>
-  <script type="text/javascript" src="./src/Map.js?asdf=rxrxrx"></script>
+  <script type="text/javascript" src="./src/geoHelpers.js?asdf=yoyoyo"></script>
+  <script type="text/javascript" src="./src/Earth.js?asdf=yoyoyo"></script>
+  <script type="text/javascript" src="./src/Widgets.js?asdf=yoyoyo"></script>
+  <script type="text/javascript" src="./src/Marker.js?asdf=yoyoyo"></script>
+  <script type="text/javascript" src="./src/Stage.js?asdf=yoyoyo"></script>
+  <script type="text/javascript" src="./src/Label.js?asdf=yoyoyo"></script>
+  <script type="text/javascript" src="./src/Path.js?asdf=yoyoyo"></script>
+  <script type="text/javascript" src="./src/Map.js?asdf=yoyoyo"></script>
 
   <style>
     html, body {
       height: 100%;
       padding: 0;
       margin: 0;
+      overflow: hidden;
     }
     .stats {
       position: absolute;
@@ -50,57 +51,35 @@
     .globe canvas {
       width: 100vw;
       height: 100vh;
-      position: fixed;
-      top: 0;
-      left: 0;
       z-index: -9999;
     }
-
-    .widgets {}
   </style>
 
 </head>
-
 <body>
-  <!-- <canvas id="canvas" width="480" height="240"></canvas> -->
-  <!-- <canvas id="map" width="480" height="240"></canvas> -->
   <div class="stats" id="stats"></div>
-  <div id="main">
-    <div class="widgets"></div>
-    <div id="globe" class="globe"></div>
-  </div>
+  <div id="globe" class="globe"></div>
   <script type="text/javascript">
     $(window).load(function() {
       const params = (new URL(location)).searchParams;
       const globeId = params.get('globeId');
-      
-      const container = document.getElementById(params.get('globeId'));
-      const globe = new Globe(container, {
+      const container = document.getElementById(params.get('globeId') || 'globe');
+      const options = {
         view: {
-          fullWidth: window.innerWidth * 4,
-          fullHeight: window.innerHeight * 4,
-          x: params.get('x'),
-          y: params.get('y'),
+          fullWidth: parseInt(params.get('fullWidth')) || window.innerWidth,
+          fullHeight: parseInt(params.get('fullHeight')) || window.innerHeight,
+          x: parseInt(params.get('x')) || 0,
+          y: parseInt(params.get('y')) || 0,
           width: window.innerWidth,
           height: window.innerHeight,
         }
-      });
+      };
+      const globe = new Globe(container, options);
+      globe.animate();
     });
-    /*
-    function center() {
-      const event = new CustomEvent('center', {
-        detail: {
-          latitude: -34.603722,
-          longitude: -58.381592
-        }
-      });
-      document.getElementById('globe_a').dispatchEvent(event)
-      document.getElementById('globe_b').dispatchEvent(event)
-    }
-    */
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/systemjs/0.20.14/system.js"></script>
-  <script>
+  <script type="text/javascript">
     SystemJS.config({
       baseURL: './src',
       defaultExtension: 'js',

@@ -30,8 +30,9 @@ class Stage {
   }
 
   createCamera ({fullWidth, fullHeight, x, y, width, height}) {
-    const camera = new THREE.PerspectiveCamera(50, height / width, 1, 5000);
-    camera.setViewOffset(width, height, x, y, width, height);
+    const camera = new THREE.PerspectiveCamera(50, width / height, 1, 5000);
+    console.log(fullWidth, fullHeight, x, y, width, height)
+    camera.setViewOffset(fullWidth, fullHeight, x, y, width, height);
     camera.position.z = 1400;
     camera.lookAt(new THREE.Vector3(0, 0, 0));
     return camera;

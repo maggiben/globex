@@ -9,13 +9,20 @@
     <meta http-equiv='expires' content='0'>
     <meta http-equiv='pragma' content='no-cache'>
     <style type="text/css">
+      html, body {
+        height: 100%;
+        padding: 0;
+        margin: 0;
+        background-color: #f00;
+      }
       iframe {
         margin: 0;
         padding: 0;
-        /*border: none;*/
+        border: none;
         position: absolute; 
-        width: 50%; height: 50%;
-        border: 1px solid #000
+        width: 50%; 
+        height: 50%;
+        box-sizing: border-box;
       }
       .nw{background: #f09; top: 0; left: 0; right: 50%; bottom: 50%}
       .ne{background: #f90; top: 0; left: 50%; right: 0; bottom: 50%}
@@ -24,10 +31,46 @@
     </style>
   </head>
   <body>
-    <iframe class="nw" src="./index.html?globeId=globe&x=-320&y=-240"></iframe>
+    <iframe class="nw" data-position="nw"></iframe>
+    <!-- <iframe class="ne" data-position="ne"></iframe> -->
+    <!-- <iframe class="sw" data-position="sw"></iframe> -->
+    <!-- <iframe class="se" data-position="se"></iframe> -->
+    <!-- <iframe class="nw" src="./index.html?globeId=globe&x=-320&y=-240"></iframe>
     <iframe class="ne" src="./index.html?globeId=globe&x=320&y=-240"></iframe>
     <iframe class="sw" src="./index.html?globeId=globe&x=-320&y=240"></iframe>
-    <iframe class="se" src="./index.html?globeId=globe&x=320&y=240"></iframe>
+    <iframe class="se" src="./index.html?globeId=globe&x=320&y=240"></iframe> -->
+    <script type="text/javascript">
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      const elements = document.getElementsByTagName('iframe');
+      const frames = window.frames;
+      for (var i = 0; i < frames.length; i++) { 
+        // do something with each subframe as frames[i]
+        // const style = frames[i].document.body.style.background = '#000';
+        // const rect = window.frames[i].getBoundingClientRect();
+        const element = elements[i];
+        const rect = element.getBoundingClientRect();
+        //element.src = `./index.html?globeId=globe&fullWidth=${width}&fullHeight=${height}&x=${width / 2}&y=${height / 2}`; // repeat
+        element.src = `./index.html?globeId=globe`;
+        // element.src = `./index.html?globeId=globe&x=-${-(width / 2)}&y=${-(height / 2)}`;
+
+
+        // switch (element.dataset.position) {
+        //   case 'nw':
+        //     element.src = `./index.html?globeId=globe&fullWidth=${width}&fullHeight=${height}&x=0&y=0`;
+        //     break;
+        //   case 'ne':
+        //     element.src = `./index.html?globeId=globe&fullWidth=${width}&fullHeight=${height}&x=${width / 2}&y=0`;
+        //     break;
+        //   case 'sw':
+        //     element.src = `./index.html?globeId=globe&fullWidth=${width}&fullHeight=${height}&x=0&y=${height / 2}`;
+        //     break;
+        //   case 'se':
+        //     element.src = `./index.html?globeId=globe&fullWidth=${width}&fullHeight=${height}&x=${width / 2}&y=${height / 2}`;
+        //     break;
+        // }
+      }
+    </script>
   </body>
 
 </html>

@@ -4,7 +4,6 @@ import axios from 'axios';
 import './main.css!'
 import Caca from 'caca';
 
-console.log($, timesync)
 const caca = new Caca()
 
 let done = false;
@@ -17,7 +16,8 @@ async function pepe() {
 // create a timesync instance
 const ts = timesync.create({
   server: 'http://localhost:8080/timesync',
-  interval: 10000
+  interval: 10000,
+  delay: 1000
 });
 
 const centerGlobe = function () {
@@ -40,7 +40,11 @@ const centerGlobe = function () {
   const params = (new URL(location)).searchParams;
   const globeId = params.get('globeId');
   const event = new CustomEvent('center', {
-    detail: place
+    detail: {
+      place,
+      offset: ts.offset,
+      now: ts.now()
+    }
   });
   document.getElementById(globeId).dispatchEvent(event);
   done = !done;
@@ -60,16 +64,18 @@ const animateId = function () {
 }
 
 ts.on('sync', function (state) {
-  //console.log('sync ' + state + '');
+  let delay = 0;
   if (state === 'end') {
     console.log(ts.offset);
-    setTimeout(centerGlobe, 2000 - ts.offset);
-    animateId()
+    delay += ts.offset;
+    centerGlobe();
+    // setTimeout(centerGlobe, delay);
+    // animateId();
   }
 });
 // get notified on changes in the offset
 ts.on('change', function (offset) {
-  //console.log('changed offset: ', offset, ts.now());
+  // console.log('changed offset: ', offset);
 });
 
   // console.log(document)

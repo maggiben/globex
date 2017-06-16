@@ -84,8 +84,8 @@ class Globe {
       },
       world: {
         radius: 500,
-        width: 240,
-        height: 480,
+        width: 480,
+        height: 240,
         uri: 'https://unpkg.com/world-atlas@1.1.4/world/50m.json'
       },
       rotationSpeed: .005
@@ -101,11 +101,12 @@ class Globe {
     // this.dish();
     // this.background();
 
-    this.controls = this.setupControls();
-    this.helpers();
+    // this.controls = this.setupControls();
+    // this.helpers();
     
     this.world = new THREE.Group();
     this.planet = new THREE.Group();
+    this.planet.add(this.fakeEarth(this.options.world.radius))
     // const widgets = new Widgets(this.options);
     // this.planet.add(widgets.elements);
 
@@ -126,7 +127,7 @@ class Globe {
 
     this.scene.add(this.world);
     container.appendChild(this.renderer.domElement);
-    const land = new Map(this.planet, this.options.world);
+    // const land = new Map(this.planet, this.options.world);
 
     // const route = this.drawFlightPath()
     // this.planet.add(route);
@@ -136,12 +137,17 @@ class Globe {
     // }, 10000)
 
     container.addEventListener('center', event => {
-      const { latitude, longitude } = event.detail;
-      this.center(latitude, longitude)
+      const { latitude, longitude } = event.detail.place;
+      const { offset } = event.detail;
+      this.place = event.detail.place;
+      // this.center(latitude, longitude)
+      this.toggle = true;
+      this.future = this.timerNow; //(2000 - offset)
+      this.future += offset;
     }, false);
 
-    document.addEventListener('start:animationId', event => {
-      this.animate();
+    container.addEventListener('start:animationId', event => {
+      // this.animate();
     });
 
     document.addEventListener('interact', event => {
@@ -154,11 +160,11 @@ class Globe {
       this.camera.rotation.copy(camera.rotation);
     }, false);
 
-    this.controls.addEventListener('change', ({target}) => {
-      const camera = target.object;
-      const event = new CustomEvent('interact', {detail: camera});
-      document.dispatchEvent(event);
-    }, false);
+    //this.controls.addEventListener('change', ({target}) => {
+      //const camera = target.object;
+      //const event = new CustomEvent('interact', {detail: camera});
+      //document.dispatchEvent(event);
+    //}, false);
 
     return;
   }
@@ -200,30 +206,44 @@ class Globe {
     const mesh = new THREE.Mesh( tube, material );
     this.planet.add( mesh );
   }
+  
+  render () {
+    const { scene, camera, renderer } = this;;
+    renderer.render(scene, camera);
+  }
 
   animate () {
-    const { scene, camera, renderer, stats, planet, options} = this;
+    const { scene, camera, renderer, stats, planet, options, controls } = this;
     function render(time) {
-      planet.rotation.y -= options.rotationSpeed;
+      // planet.rotation.y -= options.rotationSpeed;
       TWEEN.update(time);
       renderer.render(scene, camera);
+      // controls.update();
     }
 
     function loop(time) {
       stats.update();
+
+      this.timerNow = time;
+      if(time >= this.future && this.toggle) {
+        const { latitude, longitude } = this.place;
+        this.center(latitude, longitude);
+        this.toggle = false;
+      }
       // me.stats.begin();
       render(time);
       // me.stats.end();
       const animationId = requestAnimationFrame(loop.bind(this));
-      //me.controls.update();
+      // controls.update();
     }
-    loop()
+    const l = loop.bind(this);
+    l()
   }
 
   setupControls () {
     const { scene, camera, renderer } = this;
     //controls
-    const controls = new THREE.OrbitControls(camera, this.container);
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.target.set(0, 0, 0);
     controls.enableDamping = true;
     controls.dampingFactor = 0.07;
@@ -267,6 +287,18 @@ class Globe {
     const helper = new THREE.GridHelper(10000, 100, 0x0000ff, 0x808080);
     this.scene.add(axes);
     this.scene.add(helper);
+  }
+
+  fakeEarth (radius) {
+    const loader = new THREE.TextureLoader();
+    const material = new THREE.MeshBasicMaterial( { 
+      color: 0xFFFFFF,
+      blending: THREE.NormalBlending,
+      wireframe: true
+    });
+    const geometry = new THREE.SphereGeometry( radius, 32, 32 );
+    const sphere = new THREE.Mesh( geometry, material );
+    return sphere;
   }
 
   darkEarth (radius) {

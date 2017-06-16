@@ -4,7 +4,7 @@ class Map {
       radius: 500,
       width: 960,
       height: 480,
-      color: 0x1B9EBC,
+      color: 0xFFFFFF,//0x1B9EBC,
       uri: 'https://unpkg.com/world-atlas@1.1.4/world/50m.json'
     }, {width, height, radius});
 
