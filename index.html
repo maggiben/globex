@@ -1,77 +1,146 @@
 <!DOCTYPE html>
 <!-- saved from url=(0030)http://missioncontrol.j38.net/ -->
 <html lang="en">
-	<head>
-		<title>Mission Control</title> 
-		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> 
-		<meta http-equiv='cache-control' content='no-cache'>
-		<meta http-equiv="cache-control" content="no-store" />
-		<meta http-equiv='expires' content='0'>
-		<meta http-equiv='pragma' content='no-cache'>
-		
-		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/7.0.0/normalize.min.css" />
-		<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r16/Stats.min.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/85/three.min.js"></script>
- 		<script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/16.7.0/Tween.min.js"></script>
- 		<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.1/axios.min.js"></script>
- 		<script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/4.3.1/turf.min.js"></script>
- 		<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.9.1/d3.min.js"></script>
- 		<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-geo-projection/2.1.2/d3-geo-projection.min.js"></script>
- 		<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.0/topojson.min.js"></script>
- 		<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"></script>
- 		<script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.6.5/dat.gui.min.js"></script>
 
- 		<script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+<head>
+  <title>Mission Control</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta http-equiv='cache-control' content='no-cache'>
+  <meta http-equiv="cache-control" content="no-store" />
+  <meta http-equiv='expires' content='0'>
+  <meta http-equiv='pragma' content='no-cache'>
 
- 		<!-- Own Scripts -->
-		<script type="text/javascript" src="./src/geoHelpers.js?asdf=123"></script>
-		<script type="text/javascript" src="./src/Earth.js?34=333dd"></script>
-		<script type="text/javascript" src="./src/Widgets.js?34=asdf"></script>
-		<script type="text/javascript" src="./src/Marker.js?asdf=asdf"></script>
-		<script type="text/javascript" src="./src/Stage.js?asdf=adfasdfasd"></script>
-		<script type="text/javascript" src="./src/Label.js?asdf=fdgh"></script>
-		<script type="text/javascript" src="./src/Path.js?a33sdf=ssss33"></script>
-		<script type="text/javascript" src="./src/Map.js?a33sdf=asdf3"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/7.0.0/normalize.min.css" />
+  <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r16/Stats.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/85/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/16.7.0/Tween.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.1/axios.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/4.3.1/turf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.9.1/d3.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-geo-projection/2.1.2/d3-geo-projection.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.0/topojson.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.6.5/dat.gui.min.js"></script>
 
-		<style>
-			#canvas {
-				background-color: #fff;
-			}
-			.stats {
-				position: absolute;
-				top: 0;
-				left: 0;
-				z-index: 9999;
-			}
-			.globe canvas {
-				width: 100vw;
-				height: 100vh;
-				display: block;
-				position: fixed;
-				top: 0;
-				left: 0;
-				z-index: -9999;
-			}
-			.widgets {
+  <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
 
-			}
-		</style>
+  <!-- Own Scripts -->
+  <script type="text/javascript" src="./src/geoHelpers.js?asdf=rxrxrx"></script>
+  <script type="text/javascript" src="./src/Earth.js?asdf=rxrxrx"></script>
+  <script type="text/javascript" src="./src/Widgets.js?asdf=rxrxrx"></script>
+  <script type="text/javascript" src="./src/Marker.js?asdf=rxrxrx"></script>
+  <script type="text/javascript" src="./src/Stage.js?asdf=rxrxrx"></script>
+  <script type="text/javascript" src="./src/Label.js?asdf=rxrxrx"></script>
+  <script type="text/javascript" src="./src/Path.js?asdf=rxrxrx"></script>
+  <script type="text/javascript" src="./src/Map.js?asdf=rxrxrx"></script>
 
-	</head> 		
-		
-	<body> 		
-		<!-- <canvas id="canvas" width="480" height="240"></canvas> -->
-		<!-- <canvas id="map" width="480" height="240"></canvas> -->
-		<div class="stats" id="stats"></div>
-		<div id="main">
-			<div class="widgets"></div>
-			<div id="container" class="globe"></div>
-		</div>
-		<script type="text/javascript">
-			$(window).load(function () {
-				makeEarth()
-			});		
-		</script>
-	</body> 
-</html> 
+  <style>
+    html, body {
+      height: 100%;
+      padding: 0;
+      margin: 0;
+    }
+    .stats {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 9999;
+    }
+    .globe canvas {
+      width: 100vw;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: -9999;
+    }
+
+    .widgets {}
+  </style>
+
+</head>
+
+<body>
+  <!-- <canvas id="canvas" width="480" height="240"></canvas> -->
+  <!-- <canvas id="map" width="480" height="240"></canvas> -->
+  <div class="stats" id="stats"></div>
+  <div id="main">
+    <div class="widgets"></div>
+    <div id="globe" class="globe"></div>
+  </div>
+  <script type="text/javascript">
+    $(window).load(function() {
+      const params = (new URL(location)).searchParams;
+      const globeId = params.get('globeId');
+      
+      const container = document.getElementById(params.get('globeId'));
+      const globe = new Globe(container, {
+        view: {
+          fullWidth: window.innerWidth * 4,
+          fullHeight: window.innerHeight * 4,
+          x: params.get('x'),
+          y: params.get('y'),
+          width: window.innerWidth,
+          height: window.innerHeight,
+        }
+      });
+    });
+    /*
+    function center() {
+      const event = new CustomEvent('center', {
+        detail: {
+          latitude: -34.603722,
+          longitude: -58.381592
+        }
+      });
+      document.getElementById('globe_a').dispatchEvent(event)
+      document.getElementById('globe_b').dispatchEvent(event)
+    }
+    */
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/systemjs/0.20.14/system.js"></script>
+  <script>
+    SystemJS.config({
+      baseURL: './src',
+      defaultExtension: 'js',
+      transpiler: 'plugin-babel',
+      map: {
+        'plugin-babel': 'https://rawgit.com/systemjs/plugin-babel/master/plugin-babel.js',
+        'systemjs-babel-build': 'https://rawgit.com/systemjs/plugin-babel/master/systemjs-babel-browser.js',
+        'transform-class-properties': 'https://unpkg.com/babel-plugin-transform-class-properties',
+        'transform-decorators': 'https://unpkg.com/babel-plugin-transform-decorators',
+        'preset-env': 'https://unpkg.com/babel-preset-env',
+        'css': 'https://unpkg.com/systemjs-plugin-css'
+      },
+      packages: {
+        './src': {
+          defaultExtension: 'js',
+          meta: {
+            '*.css': { loader: 'css' }
+          },
+          map: {
+            'jquery': 'https://code.jquery.com/jquery-2.2.4.min.js',
+            'timesync': 'https://unpkg.com/timesync/dist/timesync.min.js',
+            'axios': 'https://unpkg.com/axios/dist/axios.min.js',
+            'babelOptions': {
+              'sourceMaps': true,
+              'plugins': ['transform-class-properties', 'transform-decorators'],
+              'presets': [
+                'stage-0',
+                'env', {
+                  'targets': {
+                    'browsers': ['last 2 versions']
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    });
+    SystemJS.import('main.js');
+  </script>
+</body>
+
+</html>

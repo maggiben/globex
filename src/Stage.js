@@ -1,6 +1,7 @@
 class Stage {
   constructor (container) {
     /*
+    window.innerWidth, window.innerHeight
     this.scene = new THREE.Scene();
     this.renderer = this.createRenderer(container);
     this.camera = this.createCamera();
@@ -9,37 +10,38 @@ class Stage {
     */
   }
 
-  createRenderer () {
+  createRenderer ({width, height}) {
     const renderer = new THREE.WebGLRenderer({
+      precision: 'lowp',
       // antialias: true,
       // clearAlpha: 1
     });
     renderer.setClearColor(0x000000);
     renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setSize(width, height);
     return renderer;
   }
 
-  showStats () {
+  showStats (option = 0) {
     const stats = new Stats();
-    // Options = 0: fps, 1: ms, 2: mb, 3+: custom
-    stats.showPanel(0); 
+    stats.showPanel(option); 
     document.getElementById('stats').append(stats.domElement);
     return stats;
   }
 
-  createCamera () {
-    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 3000);
+  createCamera ({fullWidth, fullHeight, x, y, width, height}) {
+    const camera = new THREE.PerspectiveCamera(50, height / width, 1, 5000);
+    camera.setViewOffset(width, height, x, y, width, height);
     camera.position.z = 1400;
-    this.scene.add(this.camera);
+    camera.lookAt(new THREE.Vector3(0, 0, 0));
     return camera;
   }
 
-  helpers () {
+  helpers (scene) {
     const axes = new THREE.AxisHelper(50);
     const helper = new THREE.GridHelper(10000, 10, 0x0000ff, 0x808080);
-    this.scene.add(axes);
-    this.scene.add(helper);
+    scene.add(axes);
+    scene.add(helper);
   }
 
   setupControls () {
@@ -53,5 +55,29 @@ class Stage {
     controls.zoomSpeed = 1;
     controls.panSpeed = 0.008;
     return controls;
+  }
+
+  background () {
+    const loader = new THREE.TextureLoader();
+    let plateMaterial = new THREE.MeshBasicMaterial({
+      map: loader.load( 'images/background.jpg' ),
+      //map: this.makeTexture(),
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      opacity: 0
+    });
+
+    let plate = new THREE.Mesh( new THREE.PlaneGeometry( 1920, 1200, 1, 1 ),  plateMaterial);
+    plate.scale.x = plate.scale.y = 2;
+    plate.position.z -= 1175;  
+
+    const tween = new TWEEN.Tween(plateMaterial)
+    .to({ 
+      opacity: 1
+    }, 2000)
+    .easing( TWEEN.Easing.Quartic.InOut )
+    .start();
+
+    this.scene.add(plate);
   }
 }

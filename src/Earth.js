@@ -72,25 +72,36 @@ const makeEarth = async function () {
 }
 
 class Globe {
-  constructor (container) {
-    this.options = {
+  constructor (container, options) {
+    this.options = Object.assign({}, {
+      view: {
+        fullWidth: window.innerWidth,
+        fullHeight: window.innerHeight,
+        x: 0,
+        y: 0,
+        width: window.innerWidth,
+        height: window.innerHeight
+      },
       world: {
         radius: 500,
-        width: 480,
-        height: 240,
+        width: 240,
+        height: 480,
         uri: 'https://unpkg.com/world-atlas@1.1.4/world/50m.json'
       },
       rotationSpeed: .005
-    }
+    }, options);
     
+    this.container = container;
+    this.scene = new THREE.Scene();
     this.stage = new Stage(container);
-    this.stats = this.showStats();
-    this.renderer = this.stage.createRenderer();
-    this.universe = this.universe();
+    this.stats = this.stage.showStats();
+    this.renderer = this.stage.createRenderer(this.options.view);
+    this.camera = this.stage.createCamera(this.options.view);
+    this.scene.add(this.camera);
     // this.dish();
     // this.background();
 
-    this.setupControls();
+    this.controls = this.setupControls();
     this.helpers();
     
     this.world = new THREE.Group();
@@ -109,24 +120,45 @@ class Globe {
 
     this.world.add(this.planet);
 
-    // this.world.rotation.z = .465;
-    // this.world.rotation.x = .3;
+    this.world.rotation.z = .465;
+    this.world.rotation.x = .3;
     //this.planet.rotation.y = 9
 
     this.scene.add(this.world);
     container.appendChild(this.renderer.domElement);
     const land = new Map(this.planet, this.options.world);
 
-    setTimeout(() => {
-      this.center(-34.603722, -58.381592)
-    }, 100)
-    const route = this.drawFlightPath()
-    this.planet.add(route);
+    // const route = this.drawFlightPath()
+    // this.planet.add(route);
 
-    setTimeout(() => {
-      // this.planet.remove(route);
-      route.remove()
-    }, 10000)
+    // setTimeout(() => {
+    //   route.remove()
+    // }, 10000)
+
+    container.addEventListener('center', event => {
+      const { latitude, longitude } = event.detail;
+      this.center(latitude, longitude)
+    }, false);
+
+    document.addEventListener('start:animationId', event => {
+      this.animate();
+    });
+
+    document.addEventListener('interact', event => {
+      const camera = event.detail;
+      if (this.camera.uuid == camera.uuid) {
+        return;
+      }
+      // https://stackoverflow.com/questions/30731469/three-js-switching-between-cameras-and-controls
+      this.camera.position.copy(camera.position);
+      this.camera.rotation.copy(camera.rotation);
+    }, false);
+
+    this.controls.addEventListener('change', ({target}) => {
+      const camera = target.object;
+      const event = new CustomEvent('interact', {detail: camera});
+      document.dispatchEvent(event);
+    }, false);
 
     return;
   }
@@ -167,64 +199,31 @@ class Globe {
     })
     const mesh = new THREE.Mesh( tube, material );
     this.planet.add( mesh );
-
-    console.log('end')
-
-  }
-
-  showStats () {
-    const stats = new Stats();
-    stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
-    document.getElementById('stats').append( stats.domElement );
-    return stats;
   }
 
   animate () {
-    const { scene, camera, renderer } = this;
-    const globe = this.planet;
-    const me = this;
-
+    const { scene, camera, renderer, stats, planet, options} = this;
     function render(time) {
-      //globe.rotation.y -= me.options.rotationSpeed;
+      planet.rotation.y -= options.rotationSpeed;
       TWEEN.update(time);
       renderer.render(scene, camera);
     }
 
     function loop(time) {
-      me.stats.update();
+      stats.update();
       // me.stats.begin();
       render(time);
       // me.stats.end();
-      const animationId = requestAnimationFrame(loop);
+      const animationId = requestAnimationFrame(loop.bind(this));
       //me.controls.update();
     }
     loop()
   }
 
-  createRenderer () {
-    let renderer = new THREE.WebGLRenderer({
-      // antialias: true,
-      // clearAlpha: 1
-    });
-    renderer.setClearColor(0x000000);
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    return renderer;
-  }
-
-  universe () {
-    this.scene = new THREE.Scene();
-    // this.scene.fog = new THREE.FogExp2( 0x000000, 0.0005 );
-    this.camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 5000);
-    this.camera.position.z = 1400;
-    this.camera.lookAt(new THREE.Vector3(0,0,0));
-    this.scene.add(this.camera);
-  }
-
   setupControls () {
     const { scene, camera, renderer } = this;
     //controls
-    const controls = new THREE.OrbitControls(camera, this.renderer.domElement);
+    const controls = new THREE.OrbitControls(camera, this.container);
     controls.target.set(0, 0, 0);
     controls.enableDamping = true;
     controls.dampingFactor = 0.07;
@@ -239,7 +238,6 @@ class Globe {
     const spotLight = new THREE.DirectionalLight(0xffffff, 1);
     // spotLight.position.set(5,3,5);
     spotLight.position.set(100, 1, 0);
-
     spotLight.target = this.planet;
 
     // this.scene.add(ambientLight);
@@ -248,29 +246,7 @@ class Globe {
     console.info('lights done')
   }
   
-  background () {
-    const loader = new THREE.TextureLoader();
-    let plateMaterial = new THREE.MeshBasicMaterial({
-      map: loader.load( 'images/background.jpg' ),
-      //map: this.makeTexture(),
-      transparent: true,
-      blending: THREE.AdditiveBlending,
-      opacity: 0
-    });
-
-    let plate = new THREE.Mesh( new THREE.PlaneGeometry( 1920, 1200, 1, 1 ),  plateMaterial);
-    plate.scale.x = plate.scale.y = 2;
-    plate.position.z -= 1175;  
-
-    const tween = new TWEEN.Tween(plateMaterial)
-    .to({ 
-      opacity: 1
-    }, 2000)
-    .easing( TWEEN.Easing.Quartic.InOut )
-    .start();
-
-    this.scene.add(plate);
-  }
+  
 
   center (latitude, longitude, delay = 2000) {
     //const verticalOffset = 0.1;

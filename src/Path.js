@@ -93,9 +93,8 @@ class Path {
   }
 
   buildPath (origin, destination) {
-    const points = this.bezierCurveBetween(origin, destination);
-    const geometry = new THREE.Geometry();
-    this.geometry = geometry;
+    const points = this.points = this.bezierCurveBetween(origin, destination);
+    const geometry = this.geometry = new THREE.Geometry();
     
     for (let i = 0; i < points.length; i++) {
       // const vector = new THREE.Vector3( points[i].x, points[i].y, points[i].z );
@@ -145,7 +144,7 @@ class Path {
   remove () {
     // const geometry = this.geometry;
     // const line = this.route;
-    
+
     // console.log('route', this.route)
     // new TWEEN.Tween({amount: 0})
     // .to({amount: points.length}, 5000)
