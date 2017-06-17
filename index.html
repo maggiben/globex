@@ -21,19 +21,18 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-geo-projection/2.1.2/d3-geo-projection.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.0/topojson.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.6.5/dat.gui.min.js"></script>
 
   <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
 
   <!-- Own Scripts -->
-  <script type="text/javascript" src="./src/geoHelpers.js?asdf=yoyoyo"></script>
-  <script type="text/javascript" src="./src/Earth.js?asdf=yoyoyo"></script>
-  <script type="text/javascript" src="./src/Widgets.js?asdf=yoyoyo"></script>
-  <script type="text/javascript" src="./src/Marker.js?asdf=yoyoyo"></script>
-  <script type="text/javascript" src="./src/Stage.js?asdf=yoyoyo"></script>
-  <script type="text/javascript" src="./src/Label.js?asdf=yoyoyo"></script>
-  <script type="text/javascript" src="./src/Path.js?asdf=yoyoyo"></script>
-  <script type="text/javascript" src="./src/Map.js?asdf=yoyoyo"></script>
+  <script type="text/javascript" src="./src/geoHelpers.js?asdf=xoxoxoxox"></script>
+  <script type="text/javascript" src="./src/Earth.js?asdf=xoxoxoxox"></script>
+  <script type="text/javascript" src="./src/Widgets.js?asdf=xoxoxoxox"></script>
+  <script type="text/javascript" src="./src/Marker.js?asdf=xoxoxoxox"></script>
+  <script type="text/javascript" src="./src/Stage.js?asdf=xoxoxoxox"></script>
+  <script type="text/javascript" src="./src/Label.js?asdf=xoxoxoxox"></script>
+  <script type="text/javascript" src="./src/Path.js?asdf=xoxoxoxox"></script>
+  <script type="text/javascript" src="./src/Map.js?asdf=xoxoxoxox"></script>
 
   <style>
     html, body {
@@ -78,7 +77,7 @@
       globe.animate();
     });
   </script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/systemjs/0.20.14/system.js"></script>
+  <script src="https://unpkg.com/systemjs"></script>
   <script type="text/javascript">
     SystemJS.config({
       baseURL: './src',
@@ -90,7 +89,8 @@
         'transform-class-properties': 'https://unpkg.com/babel-plugin-transform-class-properties',
         'transform-decorators': 'https://unpkg.com/babel-plugin-transform-decorators',
         'preset-env': 'https://unpkg.com/babel-preset-env',
-        'css': 'https://unpkg.com/systemjs-plugin-css'
+        'css': 'https://unpkg.com/systemjs-plugin-css',
+        'socket.io-client' : 'https://unpkg.com/socket.io-client/dist/socket.io.js'
       },
       packages: {
         './src': {
@@ -118,7 +118,7 @@
         }
       }
     });
-    SystemJS.import('main.js');
+    SystemJS.import('Main.js');
   </script>
 </body>
 

@@ -21,10 +21,10 @@ class Map {
     const land = await this.makeLand(atlas, this.options);
     const countries = await this.makeCountries(atlas, this.options);
     // Draw borders
-    // const { points, geometry } = this.makeGlobe(land, countries, this.options);
-    const { points, geometry } = this.makeGlobe(land, null, this.options);
+    const { points, geometry } = this.makeGlobe(land, countries, this.options);
+    // const { points, geometry } = this.makeGlobe(land, null, this.options);
     this.geometries.land = geometry;
-    //this.highlightRegions(['argentina', 'brazil', 'china', 'angola'], this.geometries.land, land, countries, this.options)
+    // this.highlightRegions(['argentina', 'brazil', 'china', 'angola'], this.geometries.land, land, countries, this.options)
     return planet.add(points);
   }
 
