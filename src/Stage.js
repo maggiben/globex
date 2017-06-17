@@ -12,8 +12,8 @@ class Stage {
 
   createRenderer ({width, height}) {
     const renderer = new THREE.WebGLRenderer({
-      // precision: 'lowp',
-      antialias: true,
+      precision: 'lowp',
+      // antialias: true,
       // clearAlpha: 1
     });
     renderer.setClearColor(0x000000);

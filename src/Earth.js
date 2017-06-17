@@ -37,7 +37,7 @@ class Globe {
     
     this.world = new THREE.Group();
     this.planet = new THREE.Group();
-    // this.planet.add(this.fakeEarth(this.options.world.radius));
+    this.planet.add(this.fakeEarth(this.options.world.radius));
     // const widgets = new Widgets(this.options);
     // this.planet.add(widgets.elements);
 
@@ -58,7 +58,7 @@ class Globe {
 
     this.scene.add(this.world);
     container.appendChild(this.renderer.domElement);
-    const land = new Map(this.planet, this.options.world);
+    // const land = new Map(this.planet, this.options.world);
 
     // const route = this.drawFlightPath()
     // this.planet.add(route);

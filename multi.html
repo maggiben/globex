@@ -2,12 +2,12 @@
 <html lang="en">
 
   <head>
-    <title>Mission Control</title>
+    <title>Multi Screen tester</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta http-equiv='cache-control' content='no-cache'>
-    <meta http-equiv="cache-control" content="no-store" />
-    <meta http-equiv='expires' content='0'>
-    <meta http-equiv='pragma' content='no-cache'>
+    <meta http-equiv='Cache-Control' content='no-cache, no-store, must-revalidate'>
+    <meta http-equiv='Pragma' content='no-cache'>
+    <meta http-equiv='Expires' content='0'>
+    
     <style type="text/css">
       html, body {
         height: 100%;
@@ -40,35 +40,31 @@
     <iframe class="sw" src="./index.html?globeId=globe&x=-320&y=240"></iframe>
     <iframe class="se" src="./index.html?globeId=globe&x=320&y=240"></iframe> -->
     <script type="text/javascript">
-      const width = window.innerWidth;
-      const height = window.innerHeight;
       const elements = document.getElementsByTagName('iframe');
       const frames = window.frames;
+      
       for (var i = 0; i < frames.length; i++) { 
         // do something with each subframe as frames[i]
         // const style = frames[i].document.body.style.background = '#000';
         // const rect = window.frames[i].getBoundingClientRect();
+        const searchParams = new URLSearchParams();
         const element = elements[i];
         const rect = element.getBoundingClientRect();
+        const search = {
+          globeId: 'globe', 
+          fullWidth: window.innerWidth,
+          fullHeight: window.innerHeight,
+          x: rect.left,
+          y: rect.top,
+          random: Math.random()
+        };
+        Object.keys(search).forEach(key => searchParams.append(key, search[key]));
+        console.log(`./index.html?${searchParams.toString()}`)
+        element.src = `./index.html?${searchParams.toString()}`;
+
         //element.src = `./index.html?globeId=globe&fullWidth=${width}&fullHeight=${height}&x=${width / 2}&y=${height / 2}`; // repeat
         // element.src = `./index.html?globeId=globe`;
         // element.src = `./index.html?globeId=globe&x=-${-(width / 2)}&y=${-(height / 2)}`;
-
-
-        switch (element.dataset.position) {
-          case 'nw':
-            element.src = `./index.html?globeId=globe&fullWidth=${width}&fullHeight=${height}&x=0&y=0&random=${Math.random()}`;
-            break;
-          case 'ne':
-            element.src = `./index.html?globeId=globe&fullWidth=${width}&fullHeight=${height}&x=${width / 2}&y=0&random=${Math.random()}`;
-            break;
-          case 'sw':
-            element.src = `./index.html?globeId=globe&fullWidth=${width}&fullHeight=${height}&x=0&y=${height / 2}&random=${Math.random()}`;
-            break;
-          case 'se':
-            element.src = `./index.html?globeId=globe&fullWidth=${width}&fullHeight=${height}&x=${width / 2}&y=${height / 2}&random=${Math.random()}`;
-            break;
-        }
       }
     </script>
   </body>

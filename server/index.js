@@ -47,8 +47,8 @@ const eventos = {
 
 const handleSocket = function (io) {
   setInterval(function () {
+    debug('next animation');
     eventos.trigger = Date.now() + 2000;
-    // socket.emit('message', { d:Date.now() })
     io.sockets.emit('eventos', eventos);
   }, 5000);
 
