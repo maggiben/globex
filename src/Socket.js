@@ -1,14 +1,16 @@
 import io from 'socket.io-client';
 import timesync from 'timesync';
+
+
 const socket = io('http://localhost:8080', {
   reconnectionDelay: 5000,
-  reconnectionDelayMax: 10000,
+  reconnectionDelayMax: 10000
 });
 
 const ts = timesync.create({
   server: socket,
-  interval: 1000,
-  delay: 1000
+  interval: 5000,
+  delay: 5000
 });
 
 var done = false;

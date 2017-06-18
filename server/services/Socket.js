@@ -21,8 +21,8 @@ class SocketClient {
 
     // Socket listeners
     eventTypes.map(event => {
-      return this.socket.on(event, this[event])
-    })
+      return this.socket.on(event, this[event]);
+    });
   }
 
   disconnect = reason => {
@@ -40,6 +40,7 @@ class SocketClient {
   }
 
   timesync = data => {
+    debug('timesync', this.socket.id);
     this.socket.emit('timesync', {
       id: data && 'id' in data ? data.id : null,
       result: Date.now()
