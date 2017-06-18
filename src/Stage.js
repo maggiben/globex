@@ -12,9 +12,9 @@ class Stage {
 
   createRenderer ({width, height}) {
     const renderer = new THREE.WebGLRenderer({
-      precision: 'lowp',
-      // antialias: true,
-      // clearAlpha: 1
+      // precision: 'lowp',
+      antialias: true,
+      clearAlpha: 1
     });
     renderer.setClearColor(0x000000);
     renderer.setPixelRatio(window.devicePixelRatio);
@@ -24,7 +24,7 @@ class Stage {
 
   showStats (option = 0) {
     const stats = new Stats();
-    stats.showPanel(option); 
+    stats.showPanel(option);
     document.getElementById('stats').append(stats.domElement);
     return stats;
   }
@@ -70,10 +70,10 @@ class Stage {
 
     let plate = new THREE.Mesh( new THREE.PlaneGeometry( 1920, 1200, 1, 1 ),  plateMaterial);
     plate.scale.x = plate.scale.y = 2;
-    plate.position.z -= 1175;  
+    plate.position.z -= 1175;
 
     const tween = new TWEEN.Tween(plateMaterial)
-    .to({ 
+    .to({
       opacity: 1
     }, 2000)
     .easing( TWEEN.Easing.Quartic.InOut )

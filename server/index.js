@@ -2,44 +2,24 @@ import config from 'config';
 import express from 'express';
 import bodyParser from 'body-parser';
 import timesyncServer from 'timesync/server';
-import cookieParser from 'cookie-parser'
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import favicon from 'serve-favicon';
+import path from 'path';
 import socketio from 'socket.io';
-import { EventEmitter } from 'events';
+import { api } from './routes';
+import { ScreenSocket } from './services';
 
 const debug = require('debug')('globex:main');
-const PORT = 8080;
 const app = express();
 // App middleware
 app.use(bodyParser.json()); // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 app.use(cookieParser());
+app.use(favicon(path.join(__dirname, 'favicon.ico')))
 app.use(cors()); // for parsing application/json
-
-app.get('/', function (req, res) {
-  res.json({
-    env: process.env
-  })
-})
-
-// handle timesync requests
-app.post('/timesync', function (req, res) {
-  // console.log(timesyncServer.requestHandler)
-  return timesyncServer.requestHandler(req, res);
-  res.json({
-    env: process.env
-  })
-})
-
-//app.use('/', express.static(__dirname));
-//app.use('/timesync/', express.static(__dirname + '/../../../dist'));
-app.post('/timesync', function (req, res) {
-  const data = {
-    id: (req.body && 'id' in req.body) ? req.body.id : null,
-    result: Date.now()
-  };
-  res.json(data);
-});
+// App Rutes
+app.use('/api', api);
 
 const eventos = {
   trigger: Date.now() + 2000
@@ -70,12 +50,13 @@ const handleSocket = function (io) {
   });
 }
 
-export const server = app.listen(PORT, function () {
+export const server = app.listen(config.service.port, function () {
   const host = server.address().address
   const port = server.address().port
-  const io = socketio.listen(server);
-  handleSocket(io);
-  debug(`Runner app listening at ${host}:${port}'`)
+  // const io = socketio.listen(server);
+  // handleSocket(io);
+  const screenSocket = new ScreenSocket(server);
+  debug(`server listening at ${host}:${port}'`)
 });
 
-
+// export const socket = new ScreenSocket(server);

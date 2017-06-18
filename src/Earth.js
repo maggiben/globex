@@ -21,7 +21,7 @@ class Globe {
       },
       rotationSpeed: .005
     }, options);
-    
+
     this.container = container;
     this.scene = new THREE.Scene();
     this.stage = new Stage(container);
@@ -34,10 +34,10 @@ class Globe {
 
     this.controls = this.setupControls();
     // this.helpers();
-    
+
     this.world = new THREE.Group();
     this.planet = new THREE.Group();
-    this.planet.add(this.fakeEarth(this.options.world.radius));
+    // this.planet.add(this.fakeEarth(this.options.world.radius));
     // const widgets = new Widgets(this.options);
     // this.planet.add(widgets.elements);
 
@@ -45,7 +45,7 @@ class Globe {
     // this.lights();
     // this.planet.add(this.darkEarth(this.options.world.radius));
 
-    // // australia ‎lat long: -33.856159, 151.215256  
+    // // australia ‎lat long: -33.856159, 151.215256
     // this.planet.add(new Marker(-34.603722, -58.381592, this.options.world.radius, 'Argentina')) // argentina buenos aires
     // this.planet.add(new Marker(9.0831986,-79.5924029, 400))
     // this.planet.add(this.topu(this.options.world.radius + 30))
@@ -58,7 +58,7 @@ class Globe {
 
     this.scene.add(this.world);
     container.appendChild(this.renderer.domElement);
-    // const land = new Map(this.planet, this.options.world);
+    const land = new Map(this.planet, this.options.world);
 
     // const route = this.drawFlightPath()
     // this.planet.add(route);
@@ -133,7 +133,7 @@ class Globe {
       latitude: 25.778135,
       longitude: -80.17910
     };
-    
+
     const path = new Path(origin, destination, this.options.world.radius);
     origin = path.mapPoint(-34.603722, -58.381592, this.options.world.radius);
     destination = path.mapPoint(25.778135, -80.179100, this.options.world.radius);
@@ -149,7 +149,7 @@ class Globe {
     const path = new Path();
     const origin = path.mapPoint(-34.603722, -58.381592, this.options.world.radius);
     const destination = path.mapPoint(-33.841049, 151.242188, this.options.world.radius);
-    
+
     const tube = path.arc(origin, destination);
 
     const material = new THREE.LineBasicMaterial({
@@ -161,7 +161,7 @@ class Globe {
     const mesh = new THREE.Mesh( tube, material );
     this.planet.add( mesh );
   }
-  
+
   render () {
     const { scene, camera, renderer } = this;;
     renderer.render(scene, camera);
@@ -177,7 +177,7 @@ class Globe {
     }
 
     const tween = new TWEEN.Tween(planet.rotation)
-      .to({ 
+      .to({
         y: Math.PI * 2
       }, 15000)
       .repeat(Infinity)
@@ -211,7 +211,7 @@ class Globe {
   }
 
   lights () {
-    const ambientLight = new THREE.AmbientLight(0xff0000); 
+    const ambientLight = new THREE.AmbientLight(0xff0000);
     const spotLight = new THREE.DirectionalLight(0xffffff, 1);
     // spotLight.position.set(5,3,5);
     spotLight.position.set(100, 1, 0);
@@ -222,17 +222,17 @@ class Globe {
     // this.scene.add(spotLightLeft);
     console.info('lights done')
   }
-  
-  
+
+
 
   center (latitude, longitude, delay = 2000) {
     //const verticalOffset = 0.1;
     const { planet } = this;
     const verticalOffset = 0;
     const tween = new TWEEN.Tween(planet.rotation)
-    .to({ 
-      x: latitude * ( Math.PI / 180 ) - verticalOffset, 
-      y: ( 90 - longitude ) * ( Math.PI / 180 ) 
+    .to({
+      x: latitude * ( Math.PI / 180 ) - verticalOffset,
+      y: ( 90 - longitude ) * ( Math.PI / 180 )
     }, delay)
     .easing(TWEEN.Easing.Quartic.InOut)
     .start();
@@ -248,7 +248,7 @@ class Globe {
 
   fakeEarth (radius) {
     const loader = new THREE.TextureLoader();
-    const material = new THREE.MeshBasicMaterial( { 
+    const material = new THREE.MeshBasicMaterial( {
       color: 0xFFFFFF,
       blending: THREE.NormalBlending,
       wireframe: true
@@ -260,7 +260,7 @@ class Globe {
 
   darkEarth (radius) {
     const loader = new THREE.TextureLoader();
-    // const material = new THREE.MeshBasicMaterial( { 
+    // const material = new THREE.MeshBasicMaterial( {
     //   color: 0x000000,
     //   blending: THREE.NormalBlending,
     //   transparent: true,

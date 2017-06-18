@@ -1,6 +1,9 @@
 import io from 'socket.io-client';
 import timesync from 'timesync';
-const socket = io('http://localhost:8080');
+const socket = io('http://localhost:8080', {
+  reconnectionDelay: 5000,
+  reconnectionDelayMax: 10000,
+});
 
 const ts = timesync.create({
   server: socket,
@@ -75,7 +78,7 @@ socket.on('reconnect', function () {
 });
 
 socket.on('connect', function (data) {
-  // console.log(socket.id);
+  console.log(socket.id);
 });
 
 

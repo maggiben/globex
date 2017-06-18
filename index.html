@@ -32,7 +32,6 @@
   <script type="text/javascript" src="./src/Label.js?asdf=uououououo"></script>
   <script type="text/javascript" src="./src/Path.js?asdf=uououououo"></script>
   <script type="text/javascript" src="./src/Map.js?asdf=uououououo"></script>
-
   <style>
     html, body {
       height: 100%;
@@ -52,16 +51,15 @@
       z-index: -9999;
     }
   </style>
-
 </head>
 <body>
   <div class="stats" id="stats"></div>
   <div id="globe" class="globe"></div>
   <script type="text/javascript">
     $(window).load(function() {
-      const params = (new URL(location)).searchParams;
-      const globeId = params.get('globeId');
-      const container = document.getElementById(params.get('globeId') || 'globe');
+      const params = (new URL(window.location)).searchParams;
+      const container = document.getElementById('globe');
+      const scene = params.get('scene');
       const options = {
         view: {
           fullWidth: parseInt(params.get('fullWidth')) || window.innerWidth,
@@ -98,7 +96,6 @@
             '*.css': { loader: 'css' }
           },
           map: {
-            'jquery': 'https://code.jquery.com/jquery-2.2.4.min.js',
             'timesync': 'https://unpkg.com/timesync/dist/timesync.min.js',
             'axios': 'https://unpkg.com/axios/dist/axios.min.js',
             'babelOptions': {

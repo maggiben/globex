@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
-
   <head>
     <title>Multi Screen tester</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta http-equiv='Cache-Control' content='no-cache, no-store, must-revalidate'>
     <meta http-equiv='Pragma' content='no-cache'>
     <meta http-equiv='Expires' content='0'>
-    
+
     <style type="text/css">
       html, body {
         height: 100%;
@@ -19,8 +18,8 @@
         margin: 0;
         padding: 0;
         border: none;
-        position: absolute; 
-        width: 50%; 
+        position: absolute;
+        width: 50%;
         height: 50%;
         box-sizing: border-box;
       }
@@ -35,38 +34,28 @@
     <iframe class="ne" data-position="ne"></iframe>
     <iframe class="sw" data-position="sw"></iframe>
     <iframe class="se" data-position="se"></iframe>
-    <!-- <iframe class="nw" src="./index.html?globeId=globe&x=-320&y=-240"></iframe>
-    <iframe class="ne" src="./index.html?globeId=globe&x=320&y=-240"></iframe>
-    <iframe class="sw" src="./index.html?globeId=globe&x=-320&y=240"></iframe>
-    <iframe class="se" src="./index.html?globeId=globe&x=320&y=240"></iframe> -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/node-uuid/1.4.8/uuid.min.js"></script>
     <script type="text/javascript">
-      const elements = document.getElementsByTagName('iframe');
-      const frames = window.frames;
-      
-      for (var i = 0; i < frames.length; i++) { 
-        // do something with each subframe as frames[i]
-        // const style = frames[i].document.body.style.background = '#000';
-        // const rect = window.frames[i].getBoundingClientRect();
-        const searchParams = new URLSearchParams();
-        const element = elements[i];
-        const rect = element.getBoundingClientRect();
-        const search = {
-          globeId: 'globe', 
-          fullWidth: window.innerWidth,
-          fullHeight: window.innerHeight,
-          x: rect.left,
-          y: rect.top,
-          random: Math.random()
-        };
-        Object.keys(search).forEach(key => searchParams.append(key, search[key]));
-        console.log(`./index.html?${searchParams.toString()}`)
-        element.src = `./index.html?${searchParams.toString()}`;
-
-        //element.src = `./index.html?globeId=globe&fullWidth=${width}&fullHeight=${height}&x=${width / 2}&y=${height / 2}`; // repeat
-        // element.src = `./index.html?globeId=globe`;
-        // element.src = `./index.html?globeId=globe&x=-${-(width / 2)}&y=${-(height / 2)}`;
+      const buildScreens = function (frames, scene) {
+        for (var i = 0; i < frames.length; i++) {
+          const searchParams = new URLSearchParams();
+          const element = document.getElementsByTagName('iframe')[i];
+          const rect = element.getBoundingClientRect();
+          const search = {
+            globeId: 'globe',
+            fullWidth: window.innerWidth,
+            fullHeight: window.innerHeight,
+            x: rect.left,
+            y: rect.top,
+            scene: scene
+          };
+          Object.keys(search).forEach(key => searchParams.append(key, search[key]));
+          element.src = `./index.html?${searchParams.toString()}`;
+        }
       }
+      document.addEventListener('DOMContentLoaded', function() {
+        buildScreens(window.frames, uuid());
+      });
     </script>
   </body>
-
 </html>

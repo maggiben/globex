@@ -1,0 +1,7 @@
+{
+  "redis": false,
+  "service": {
+    "port": 8080,
+    "host": "localhost"
+  }
+}
