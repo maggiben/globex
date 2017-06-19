@@ -2,8 +2,21 @@ import timesync from 'timesync';
 import axios from 'axios';
 import './Main.css!'
 import Socket from 'Socket';
+import Globe from './Globe/Globe';
 
-async function pepe() {
-  const atlas = await axios.post('http://localhost:8080/timesync').then(result => result.data);
-  console.log(atlas)
-}
+const params = (new URL(window.location)).searchParams;
+const container = document.getElementById('globe');
+const scene = params.get('scene');
+const options = {
+  view: {
+    fullWidth: parseInt(params.get('fullWidth')) || window.innerWidth,
+    fullHeight: parseInt(params.get('fullHeight')) || window.innerHeight,
+    x: parseInt(params.get('x')) || 0,
+    y: parseInt(params.get('y')) || 0,
+    width: window.innerWidth,
+    height: window.innerHeight,
+  }
+};
+
+const globe = new Globe(container, options);
+globe.animate();

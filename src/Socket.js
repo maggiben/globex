@@ -1,6 +1,12 @@
 import io from 'socket.io-client';
 import timesync from 'timesync';
+import {Scene, PerspectiveCamera, WebGLRenderer, BoxGeometry, MeshBasicMaterial, Mesh} from 'three';
 
+class SocketClient {
+  constructor() {
+
+  }
+}
 
 const socket = io('http://localhost:8080', {
   reconnectionDelay: 5000,
@@ -48,7 +54,6 @@ const centerGlobe = function (eventos) {
 }
 
 ts.on('sync', function (state) {
-  // console.log('sync ' + state + '');
   if (state === 'end' && eventos) {
     // centerGlobe(eventos);
   }
@@ -66,6 +71,7 @@ ts.on('change', function (offset) {
 ts.send = function (socket, data) {
   socket.emit('timesync', data);
 };
+
 socket.on('timesync', function (data) {
   ts.receive(null, data);
 });

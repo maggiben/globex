@@ -191,31 +191,6 @@ class Map {
       side: THREE.DoubleSide,
     });
 
-    const shaderPoint = THREE.ShaderLib.points
-    const uniforms = THREE.UniformsUtils.clone(shaderPoint.uniforms)
-
-    const image = new Image()
-    uniforms.map.value = new THREE.Texture(image)
-    image.onload = function() {
-      uniforms.map.value.needsUpdate = true
-    };
-    image.src = imageSrc
-    //uniforms.size.value = 60
-    //uniforms.scale.value = 0//window.innerHeight * .5
-
-
-    let materialX = new THREE.PointsMaterial({
-      size: 20,
-      color: 0xffffff,
-      map:  uniforms.map.value,
-      vertexColors: THREE.VertexColors,
-      blending: THREE.AdditiveBlending,
-      side: THREE.DoubleSide,
-      depthWrite: false,
-      transparent: true,
-      // sizeAttenuation: false
-    })
-
     const geometry = new THREE.Geometry();
     const points = new THREE.Points(geometry, material);
     points.updateMatrix();

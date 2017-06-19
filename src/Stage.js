@@ -12,9 +12,9 @@ class Stage {
 
   createRenderer ({width, height}) {
     const renderer = new THREE.WebGLRenderer({
-      // precision: 'lowp',
-      antialias: true,
-      clearAlpha: 1
+      precision: 'lowp',
+      // antialias: true,
+      // clearAlpha: 1
     });
     renderer.setClearColor(0x000000);
     renderer.setPixelRatio(window.devicePixelRatio);

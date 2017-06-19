@@ -101,6 +101,15 @@ export class ScreenSocket {
     this.io.use(this.handshake);
     // Listeners
     this.io.on('connection', this.addClient);
+
+    const eventos = {
+      trigger: Date.now() + 2000
+    };
+    setInterval(function () {
+      debug('next animation');
+      eventos.trigger = Date.now() + 2000;
+      io.sockets.emit('eventos', eventos);
+    }, 5000);
   }
 
   addClient = socket => {
