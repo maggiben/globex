@@ -1,4 +1,7 @@
-class Label {
+import * as THREE from 'three';
+import * as TWEEN from 'tween';
+
+export default class Label {
   constructor (text, latitude, longitude, radius = 400) {
     const options = {
       labelColor: '#FFFFFF',

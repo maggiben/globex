@@ -2,18 +2,12 @@ import io from 'socket.io-client';
 import timesync from 'timesync';
 import {Scene, PerspectiveCamera, WebGLRenderer, BoxGeometry, MeshBasicMaterial, Mesh} from 'three';
 
-class SocketClient {
-  constructor() {
-
-  }
-}
-
-const socket = io('http://localhost:8080', {
+export const socket = io('http://localhost:8080', {
   reconnectionDelay: 5000,
   reconnectionDelayMax: 10000
 });
 
-const ts = timesync.create({
+export const ts = timesync.create({
   server: socket,
   interval: 5000,
   delay: 5000
@@ -52,12 +46,6 @@ const centerGlobe = function (eventos) {
   document.getElementById('globe').dispatchEvent(event);
   done = !done;
 }
-
-ts.on('sync', function (state) {
-  if (state === 'end' && eventos) {
-    // centerGlobe(eventos);
-  }
-});
 
 socket.on('eventos', function (data) {
   eventos = data;
@@ -103,6 +91,18 @@ document.addEventListener('sendToSocket', event => {
   // this.camera.position.copy(camera.position);
   // this.camera.rotation.copy(camera.rotation);
 });
+
+
+class SocketClient {
+  constructor(domElement) {
+    const socket = io('http://localhost:8080', {
+      reconnectionDelay: 5000,
+      reconnectionDelayMax: 10000
+    });
+    domElement.addEventListener('change')
+  }
+}
+
 
 socket.on('move:camera', function ({ position, rotation }) {
   // console.log(position, rotation)

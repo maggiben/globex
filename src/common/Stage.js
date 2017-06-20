@@ -1,4 +1,9 @@
-class Stage {
+//import { Scene, PerspectiveCamera, WebGLRenderer, BoxGeometry, MeshBasicMaterial, Mesh } from 'three';
+import * as TWEEN from 'tween';
+import * as THREE from 'three';
+import * as OrbitControls from 'three-orbitcontrols';
+
+export default class Stage {
   constructor (container) {
     /*
     window.innerWidth, window.innerHeight
@@ -19,6 +24,7 @@ class Stage {
     renderer.setClearColor(0x000000);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(width, height);
+    this.renderer = renderer;
     return renderer;
   }
 
@@ -35,6 +41,7 @@ class Stage {
     camera.setViewOffset(fullWidth, fullHeight, x, y, width, height);
     camera.position.z = 1400;
     camera.lookAt(new THREE.Vector3(0, 0, 0));
+    this.camera = camera;
     return camera;
   }
 
@@ -46,9 +53,9 @@ class Stage {
   }
 
   setupControls () {
-    const { scene, camera, renderer } = this;
+    const { camera, renderer } = this;
     //controls
-    const controls = new THREE.OrbitControls(camera, this.renderer.domElement);
+    const controls = new OrbitControls.default(camera, this.renderer.domElement);
     controls.target.set(0, 0, 0);
     controls.enableDamping = true;
     controls.dampingFactor = 0.07;

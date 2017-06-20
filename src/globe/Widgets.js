@@ -1,3 +1,6 @@
+import * as THREE from 'three';
+import * as TWEEN from 'tween';
+
 class Topu {
   constructor(options) {
     const defaults = {
@@ -38,7 +41,7 @@ class Topu {
   }
 }
 
-class Widgets {
+export default class Widgets {
   constructor(options) {
     const defaults = {
       radius: 500
@@ -117,18 +120,18 @@ class Widgets {
     const points = new THREE.Points(coreGeometry, material);
     points.updateMatrix();
         
-    new TWEEN.Tween( material)
+    new TWEEN.default.Tween( material)
       .delay(500)
       .to( {opacity: 1}, 4000)
-      .easing(TWEEN.Easing.Quartic.Out)
+      .easing(TWEEN.default.Easing.Quartic.Out)
       .start();       
     
     points.scale.x = .1;
     points.scale.y = .1;
-    new TWEEN.Tween( points.scale )
+    new TWEEN.default.Tween( points.scale )
       .delay( 200 )
       .to( { x: 1, y: 1 }, 2000 )
-      .easing(TWEEN.Easing.Quartic.Out)
+      .easing(TWEEN.default.Easing.Quartic.Out)
       .start();
     
     return points;
@@ -193,12 +196,12 @@ class Widgets {
       ticks.add( tick );
     }
 
-    new TWEEN.Tween(material)
+    new TWEEN.default.Tween(material)
       .to({
         opacity: .5
       }, 2000)
       .delay(1000)        
-      .easing(TWEEN.Easing.Quartic.Out)
+      .easing(TWEEN.default.Easing.Quartic.Out)
       .start();
 
     return ticks;
@@ -234,18 +237,18 @@ class Widgets {
     const points = new THREE.Points( orbitGeometry, material );
     points.updateMatrix();
         
-    new TWEEN.Tween(material)
+    new TWEEN.default.default.Tween(material)
       .delay(500)
       .to( {opacity: 1}, 4000)
-      .easing(TWEEN.Easing.Quartic.Out)
+      .easing(TWEEN.default.Easing.Quartic.Out)
       .start();                   
         
     points.scale.x = .1;
     points.scale.y = .1;
-    new TWEEN.Tween(points.scale)
+    new TWEEN.default.Tween(points.scale)
       .delay( 200 )
       .to( { x: 1, y: 1 }, 2000 )
-      .easing(TWEEN.Easing.Quartic.Out)
+      .easing(TWEEN.default.Easing.Quartic.Out)
       .start();     
 
     return points;

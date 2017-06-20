@@ -1,4 +1,6 @@
-class Path {
+import * as THREE from 'three';
+import * as TWEEN from 'tween';
+export default class Path {
   constructor (origin, destination, radius) {
     this.origin = this.mapPoint(origin.latitude, origin.longitude, radius);
     this.destination = this.mapPoint(destination.latitude, destination.longitude, radius);

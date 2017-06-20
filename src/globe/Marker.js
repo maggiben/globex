@@ -1,3 +1,6 @@
+import * as THREE from 'three';
+import * as TWEEN from 'tween';
+
 function filterXXX(geo, names) {
   var features = geo.features.filter(feature => {
     return names.indexOf(feature.properties.name.toLowerCase()) > -1;
@@ -11,7 +14,7 @@ function filterXXX(geo, names) {
   console.log(union)
 }
 
-class Marker {
+export default class Marker {
 
   constructor (latitude, longitude, radius, caption) {
     // axios.get('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json')
@@ -45,10 +48,10 @@ class Marker {
     const point = this.mapPoint(latitude, longitude, radius + altitude);
     const mesh = new THREE.Mesh( sphere, material );
     mesh.position.set(point.x, point.y, point.z);
-    new TWEEN.Tween(material)
+    new TWEEN.default.Tween(material)
       .delay(200)
       .to({opacity: 1}, 1000)
-      .easing(TWEEN.Easing.Quartic.Out)
+      .easing(TWEEN.default.Easing.Quartic.Out)
       .repeat(Infinity)
       .start();  
 
@@ -113,10 +116,10 @@ class Marker {
     const texture = new THREE.Texture(canvas);
 
     let attributes = { opacity: 1, radius: 0, border: 8 };
-    new TWEEN.Tween( attributes )
+    new TWEEN.default.Tween( attributes )
       .delay( 200 )
       .to( { opacity: 0, radius: 40, border: 1 }, 1000 )
-      .easing(TWEEN.Easing.Quartic.Out)
+      .easing(TWEEN.default.Easing.Quartic.Out)
       .onUpdate(function(progress) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         me.drawRing (ctx, canvas.width / 2, canvas.height / 2, this.radius, this.border, this.opacity)

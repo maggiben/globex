@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-  <title>Earth</title>
+  <title>Scene Player</title>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <meta http-equiv='Cache-Control' content='no-cache, no-store, must-revalidate'>
   <meta http-equiv='Pragma' content='no-cache'>
@@ -13,25 +13,25 @@
   <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r16/Stats.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/85/three.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/16.7.0/Tween.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.1/axios.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/4.3.1/turf.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.9.1/d3.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-geo-projection/2.1.2/d3-geo-projection.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.0/topojson.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"></script>
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/16.7.0/Tween.min.js"></script> -->
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.1/axios.min.js"></script> -->
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/4.3.1/turf.min.js"></script> -->
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.9.1/d3.min.js"></script> -->
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-geo-projection/2.1.2/d3-geo-projection.min.js"></script> -->
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.0/topojson.min.js"></script> -->
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"></script> -->
 
-  <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+  <!-- <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script> -->
 
   <!-- Own Scripts -->
-  <script type="text/javascript" src="./src/geoHelpers.js?asdf=rererer"></script>
+  <!-- <script type="text/javascript" src="./src/geoHelpers.js?asdf=rererer"></script> -->
   <!-- <script type="text/javascript" src="./src/Earth.js?asdf=rererer"></script> -->
-  <script type="text/javascript" src="./src/Widgets.js?asdf=rererer"></script>
-  <script type="text/javascript" src="./src/Marker.js?asdf=rererer"></script>
-  <script type="text/javascript" src="./src/Stage.js?asdf=rererer"></script>
-  <script type="text/javascript" src="./src/Label.js?asdf=rererer"></script>
-  <script type="text/javascript" src="./src/Path.js?asdf=rererer"></script>
-  <script type="text/javascript" src="./src/Map.js?asdf=rererer"></script>
+  <!-- <script type="text/javascript" src="./src/Widgets.js?asdf=rererer"></script> -->
+  <!-- <script type="text/javascript" src="./src/Marker.js?asdf=rererer"></script> -->
+  <!-- <script type="text/javascript" src="./src/Stage.js?asdf=rererer"></script> -->
+  <!-- <script type="text/javascript" src="./src/Label.js?asdf=rererer"></script> -->
+  <!-- <script type="text/javascript" src="./src/Path.js?asdf=rererer"></script> -->
+  <!-- <script type="text/javascript" src="./src/Map.js?asdf=rererer"></script> -->
   <style>
     html, body {
       height: 100%;
@@ -55,25 +55,6 @@
 <body>
   <div class="stats" id="stats"></div>
   <div id="globe" class="globe"></div>
-  <script type="text/javascript">
-    $(window).load(function() {
-      const params = (new URL(window.location)).searchParams;
-      const container = document.getElementById('globe');
-      const scene = params.get('scene');
-      const options = {
-        view: {
-          fullWidth: parseInt(params.get('fullWidth')) || window.innerWidth,
-          fullHeight: parseInt(params.get('fullHeight')) || window.innerHeight,
-          x: parseInt(params.get('x')) || 0,
-          y: parseInt(params.get('y')) || 0,
-          width: window.innerWidth,
-          height: window.innerHeight,
-        }
-      };
-      //const globe = new Globe(container, options);
-      //globe.animate();
-    });
-  </script>
   <script src="https://unpkg.com/systemjs"></script>
   <script type="text/javascript">
     SystemJS.config({
@@ -88,7 +69,11 @@
         'preset-env': 'https://unpkg.com/babel-preset-env',
         'css': 'https://unpkg.com/systemjs-plugin-css',
         'socket.io-client' : 'https://unpkg.com/socket.io-client/dist/socket.io.js',
-        'three': 'https://unpkg.com/three/build/three.min.js'
+        'three': 'https://unpkg.com/three/build/three.min.js',
+        'three-orbitcontrols': 'https://unpkg.com/three-orbitcontrols/OrbitControls.js',
+        'lodash': 'https://unpkg.com/lodash',
+        'turf': 'https://unpkg.com/turf/turf.min.js',
+        'tween': 'https://unpkg.com/tween.js/src/Tween.js'
       },
       packages: {
         './src': {

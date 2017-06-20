@@ -1,4 +1,9 @@
-class Map {
+import * as THREE from 'three';
+import * as TWEEN from 'tween';
+import turf from 'turf';
+import axios from 'axios';
+
+export default class Maps {
   constructor (planet, {width, height, radius}) {
     this.options = Object.assign({}, {
       radius: 500,

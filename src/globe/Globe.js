@@ -1,3 +1,14 @@
+import * as THREE from 'three';
+import * as TWEEN from 'tween';
+import * as OrbitControls from 'three-orbitcontrols';
+import Stage from '../common/Stage';
+import Maps from './Maps';
+import Widgets from './Widgets';
+import throttle from 'lodash/throttle';
+
+
+console.log(TWEEN);
+
 export default class Globe {
   constructor (container, options) {
     this.options = Object.assign({}, {
@@ -26,14 +37,14 @@ export default class Globe {
     this.camera = this.stage.createCamera(this.options.view);
     this.scene.add(this.camera);
 
-    this.controls = this.setupControls();
+    this.controls = this.stage.setupControls();
     // this.helpers();
 
-    this.world = new THREE.Group();
+    // this.world = new THREE.Group();
     this.planet = new THREE.Group();
 
 
-    // const land = new Map(this.planet, this.options.world);
+    // const land = new Maps(this.planet, this.options.world);
     this.planet.add(this.fakeEarth(this.options.world.radius));
     // const widgets = new Widgets(this.options);
     // this.planet.add(widgets.elements);
@@ -43,13 +54,14 @@ export default class Globe {
     // // australia ‎lat long: -33.856159, 151.215256
     // this.planet.add(new Marker(-34.603722, -58.381592, this.options.world.radius, 'Argentina')) // argentina buenos aires
 
-    this.world.add(this.planet);
+    // this.world.add(this.planet);
 
-    this.world.rotation.z = .465;
-    this.world.rotation.x = .3;
+    // this.world.rotation.z = .465;
+    // this.world.rotation.x = .3;
     //this.planet.rotation.y = 9
 
-    this.scene.add(this.world);
+    // this.scene.add(this.world);
+    this.scene.add(this.planet);
     container.appendChild(this.renderer.domElement);
 
     // const route = this.drawFlightPath()
@@ -106,7 +118,7 @@ export default class Globe {
       // document.dispatchEvent(event);
     // }, false);
 
-    this.controls.addEventListener('change', _.throttle(this.dispatch, 100, { trailing: true }));
+    this.controls.addEventListener('change', throttle(this.dispatch, 100, { trailing: true }));
   }
 
   dispatch ({target}) {
@@ -157,12 +169,12 @@ export default class Globe {
     const { scene, camera, renderer, stats, planet, options, controls } = this;
     function render(time) {
       // planet.rotation.y -= options.rotationSpeed;
-      TWEEN.update(time);
+      TWEEN.default.update(time);
       renderer.render(scene, camera);
       controls.update();
     }
 
-    const tween = new TWEEN.Tween(planet.rotation)
+    const tween = new TWEEN.default.Tween(planet.rotation)
       .to({
         y: Math.PI * 2
       }, 15000)
@@ -186,7 +198,7 @@ export default class Globe {
   setupControls () {
     const { scene, camera, renderer } = this;
     //controls
-    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    const controls = new OrbitControls.default(camera, renderer.domElement);
     controls.target.set(0, 0, 0);
     controls.enableDamping = true;
     controls.dampingFactor = 0.07;
@@ -206,7 +218,7 @@ export default class Globe {
     // this.scene.add(ambientLight);
     this.scene.add(spotLight);
     // this.scene.add(spotLightLeft);
-    console.info('lights done')
+    console.info('lights done');
   }
 
 
@@ -215,12 +227,12 @@ export default class Globe {
     //const verticalOffset = 0.1;
     const { planet } = this;
     const verticalOffset = 0;
-    const tween = new TWEEN.Tween(planet.rotation)
+    const tween = new TWEEN.default.Tween(planet.rotation)
     .to({
       x: latitude * ( Math.PI / 180 ) - verticalOffset,
       y: ( 90 - longitude ) * ( Math.PI / 180 )
     }, delay)
-    .easing(TWEEN.Easing.Quartic.InOut)
+    .easing(TWEEN.default.Easing.Quartic.InOut)
     .start();
   }
 

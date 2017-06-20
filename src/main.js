@@ -1,8 +1,9 @@
 import timesync from 'timesync';
 import axios from 'axios';
 import './Main.css!'
-import Socket from 'Socket';
+// import Socket from 'Socket';
 import Globe from './Globe/Globe';
+import Rings from './Rings/Rings';
 
 const params = (new URL(window.location)).searchParams;
 const container = document.getElementById('globe');
@@ -18,5 +19,8 @@ const options = {
   }
 };
 
-const globe = new Globe(container, options);
-globe.animate();
+const rings = new Rings(container, options);
+rings.animate();
+
+// const globe = new Globe(container, options);
+// globe.animate();
