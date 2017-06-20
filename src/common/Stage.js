@@ -37,7 +37,6 @@ export default class Stage {
 
   createCamera ({fullWidth, fullHeight, x, y, width, height}) {
     const camera = new THREE.PerspectiveCamera(50, width / height, 1, 5000);
-    console.log(fullWidth, fullHeight, x, y, width, height)
     camera.setViewOffset(fullWidth, fullHeight, x, y, width, height);
     camera.position.z = 1400;
     camera.lookAt(new THREE.Vector3(0, 0, 0));
@@ -45,11 +44,20 @@ export default class Stage {
     return camera;
   }
 
+  createCameraHelper ({fullWidth, fullHeight, x, y, width, height}) {
+    const camera = new THREE.PerspectiveCamera(50, width / height, 1, 5000);
+    camera.setViewOffset(fullWidth, fullHeight, x, y, width, height);
+    const helper = new THREE.CameraHelper(camera);
+    return { camera, helper };
+  }
+
   helpers (scene) {
-    const axes = new THREE.AxisHelper(50);
-    const helper = new THREE.GridHelper(10000, 10, 0x0000ff, 0x808080);
-    scene.add(axes);
-    scene.add(helper);
+    const helpers = new THREE.Group();
+    const axisHelper = new THREE.AxisHelper(50);
+    const gridHelper = new THREE.GridHelper(1000, 1000, 0x0000ff, 0x808080);
+    helpers.add(axisHelper);
+    // helpers.append(gridHelper);
+    scene.add(helpers);
   }
 
   setupControls () {

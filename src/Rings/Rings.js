@@ -22,7 +22,7 @@ Ellipse.prototype.constructor = Ellipse;
 // define the getPoint function for the subClass
 Ellipse.prototype.getPoint = function ( t ) {
   const radians = 2 * Math.PI * t;
-  return new THREE.Vector3( this.xRadius * Math.cos( radians ), this.yRadius * Math.sin( radians ), 0 );
+  return new THREE.Vector3( this.xRadius * Math.cos( radians ), 0, this.yRadius * Math.sin( radians ) );
 };
 
 export default class Rings {
@@ -44,34 +44,86 @@ export default class Rings {
     this.stage = new Stage(container);
     this.stats = this.stage.showStats();
     this.renderer = this.stage.createRenderer(this.options.view);
-    this.renderer.setClearColor(0x333F47, 1);
-    // this.renderer.shadowMap.enabled = true;
-    // this.renderer.shadowMapSoft = true;
+    // this.renderer.setClearColor(0x333F47, 1);
     this.stage.helpers(this.scene);
     this.camera = this.stage.createCamera(this.options.view);
+    
+
+    this.cameraGroup = new THREE.Group();
+    this.cameraHelper = this.stage.createCameraHelper(this.options.view);
+    this.cameraHelper.camera.position.set(0, 2, 2);
+    this.cameraHelper.camera.lookAt(this.scene.position);    
+    this.cameraGroup.add(this.cameraHelper.helper);
+    this.cameraGroup.add(this.cameraHelper.camera);
+    this.scene.add(this.cameraGroup);
+
+    // this.moveCamera(this.cameraHelper.camera, 4);
 
     // position and point the camera to the center of the scene
-    this.camera.position.set(0, 8, 8);
+
+    // this.camera.position.set(0, 0, -12);
+    this.camera.position.set(0, 38, 8);
     this.camera.lookAt(this.scene.position);
     this.scene.add(this.camera);
     this.controls = this.stage.setupControls();
+
     // this.drawSkyBox();
-    this.drawFloor();
     this.mainGroup = new THREE.Group();
+    // this.camContainer.add(this.camera);
+    this.drawFloor(this.mainGroup, 30, 30);
+    this.drawTube(this.mainGroup, 12);
+    this.animatePath(this.mainGroup, 12);
+    this.placeObjects(this.mainGroup, 12);
+    // this.moveCamera(this.camera, 4);
+
+    // this.mainGroup.add(this.camera);
     // this.drawCurve(this.mainGroup);
     // this.drawCurve3(this.mainGroup);
-    this.drawTube(this.mainGroup, 4)
-    this.makeElipis(this.mainGroup, 4);
+    
 
-    this.scene.add(this.mainGroup);
+    // this.makeElipis(this.mainGroup, 4);
+
+    // this.moveCamera(this.mainGroup, 4);
     // this.drawSimple();
     // this.drawReflectingObjects();
     // this.drawBox();
     // this.scene.add(this.drawTiny());
     // this.drawReflectingObjects();
+
+
+    // this.cameraGroup.rotation.z = THREE.Math.degToRad(45);
+
+    this.moveCamera(this.cameraHelper.camera, 12);
+    
+    this.scene.add(this.mainGroup);
     this.scene.add(this.lights());
-    this.mainGroup.rotation.x = THREE.Math.degToRad(90);
+    // this.mainGroup.rotation.x = THREE.Math.degToRad(90);
     container.appendChild(this.renderer.domElement);
+  }
+
+  // cameraHelper (parent) {
+  //   const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 5000 );
+  //   const helper = new THREE.CameraHelper(camera);
+  //   camera.position.set(0, 8, 8);
+  //   camera.lookAt(this.scene.position);
+  //   parent.add(camera);
+  //   // this.moveCamera(camera, 4);
+  // }
+
+  animatePath(group, radius) {
+    const path = new Ellipse(radius, radius);
+    const box = this.box = this.drawTiny();
+    const { moveTo } = this;
+
+    new TWEEN.default.Tween({position: 1})
+      .to({position: 0}, 10000)
+      .onUpdate(function(progress) {
+        moveTo(box, path, this.position, {x:0,y:1,z:0});
+      })
+      .repeat(Infinity)
+      .start();
+
+    group.add(box);
   }
 
   drawCurve (group) {
@@ -107,7 +159,7 @@ export default class Rings {
     // get the 2Dtangent to the curve
     const tangent = path.getTangent(position).normalize();
     // change tangent to 3D
-    return -( Math.atan( tangent.x / tangent.y));
+    return -(Math.atan( tangent.x / tangent.y));
   }
 
   move (mesh, path, position) {
@@ -140,39 +192,198 @@ export default class Rings {
     mesh.quaternion.setFromAxisAngle( up, angle );
   }
 
+  moveTo (shape, path, position, {x, y, z}) {
+    const matrix = new THREE.Matrix4();
+    const up = new THREE.Vector3( x, y, z );
+    const axis = new THREE.Vector3( );
+    // set the marker position
+    const point = path.getPoint(position);
+    // set the marker position
+    shape.position.set( point.x, point.y, point.z );
+    // get the tangent to the curve
+    const tangent = path.getTangent(position).normalize();
+    // calculate the axis to rotate around
+    axis.crossVectors( up, tangent ).normalize();
+    // calcluate the angle between the up vector and the tangent
+    const radians = Math.acos(up.dot(tangent));
+    // set the quaternion
+    shape.quaternion.setFromAxisAngle( axis, radians );
+  }
+
+  moveCameraXXX (group, radius) {
+    const matrix = new THREE.Matrix4();
+    const up = new THREE.Vector3( 0, 0, 1 );
+    const axis = new THREE.Vector3( );
+    const path = new Ellipse(radius, radius);
+    const box = this.drawTiny();
+    const me = this;
+
+    new TWEEN.default.Tween({position: 1})
+      .to({position: 0}, 10000)
+      .onUpdate(function(progress) {
+        me.moveTo(box, path, this.position);
+      })
+      .repeat(Infinity)
+      .start();
+    group.add(box);
+  }
+
+  moveCameraXXX (camera, radius) {
+    const path = new Ellipse(radius, radius);
+    const { moveTo } = this;
+
+    new TWEEN.default.Tween({position: 1})
+      .to({position: 0}, 10000)
+      .onUpdate(function(progress) {
+        moveTo(camera, path, this.position, {x:0,y:1,z:0});
+      })
+      .repeat(Infinity)
+      .start();
+  }
+
+  moveCameraXX (camera, radius) {
+    const path = new Ellipse(radius, radius);
+    // const matrix = new THREE.Matrix4();
+    // const up = new THREE.Vector3( 0, 0, 1 );
+    // const axis = new THREE.Vector3( );
+    // const torus = this.drawTorus();
+
+    // function moveTo(object, t) {
+    //   // set the marker position
+    //   const pt = path.getPoint( t );
+    //   // set the marker position
+    //   torus.position.set( pt.x, pt.y, pt.z );
+    //   // get the tangent to the curve
+    //   const tangent = path.getTangent( t ).normalize();
+    //   // calculate the axis to rotate around
+    //   axis.crossVectors( up, tangent ).normalize();
+    //   // calcluate the angle between the up vector and the tangent
+    //   const radians = Math.acos( up.dot( tangent ) );
+    //   // set the quaternion
+    //   torus.quaternion.setFromAxisAngle( axis, radians );
+    // };
+
+    const point = path.getPoint(0.5);
+    const points = path.getSpacedPoints(16);
+    this.camera.position.copy(point);
+    // camera.position.set(points[1].x, points[1].y, points[1].z);
+    // camera.lookAt(points[2].x, points[2].y, points[2].z);
+    // this.moveTo(this.camera, path, 0.5);
+
+    // new TWEEN.default.Tween({position: 0})
+    //   .to({position: 1}, 10000)
+    //   .onUpdate(function(progress) {
+    //     moveTo(camera, path, this.position);
+    //   })
+    //   .repeat(Infinity)
+    //   .start();
+  }
+
+
+  moveCamera (camera, radius) {
+    const { moveTo, cameraGroup, box } = this;
+    const path = new Ellipse(radius, radius);
+    const up = new THREE.Vector3( 0, 0, 1 );
+    const axis = new THREE.Vector3();
+
+    // const point = path.getPoint(0.5);
+    // camera.position.set(point.x, point.y, point.z);
+    // const point2 = path.getPoint(0.55);
+    // camera.lookAt(point2);
+
+
+    // camera.position.set(points[0].x, points[0].y, points[0].z);
+    // const vector = new THREE.Vector3(points[1].x, points[1].y, points[1].z);
+    // this.cameraGroup.rotation.x = THREE.Math.degToRad(45);
+    // camera.lookAt(vector);
+    // camera.useQuaternion = true;
+
+    new TWEEN.default.Tween({position: 1})
+      .to({position: 0}, 10000)
+      .onUpdate(function(progress) {
+        const point_a = path.getPoint(this.position);
+        // camera.position.set(point_a.x, point_a.y, point_a.z);
+        camera.position.copy(point_a);
+        const tangent = path.getTangent(this.position + 0.00005).normalize();
+        axis.crossVectors(up, tangent).normalize();
+        // const radians = Math.atan2(tangent.y, tangent.x); //Math.acos(up.dot(tangent));
+        const radians = Math.acos(up.dot(tangent));
+        camera.quaternion.setFromAxisAngle(axis, radians);
+        // camera.lookAt(point_b);
+
+        // camera.rotation.z = THREE.Math.degToRad(0);
+
+        // console.log(tangent)
+        // moveTo(camera, path, this.position, {x:0,y:1,z:0});
+        // const point = path.getPoint(this.position + 0.02);
+        // const vec = new THREE.Vector3(point.x, point.y, point.z);
+        // cameraGroup.rotation.x = THREE.Math.degToRad(45);
+        // camera.rotation.x = THREE.Math.degToRad(45);
+        // camera.lookAt(vec.position)
+      })
+      .repeat(Infinity)
+      .start();
+  }
+
+  placeObjects(group, radius) {
+    const path = new Ellipse(radius, radius);
+    // const torus = this.drawTorus();
+    // this.moveTo(torus, path, 0.5);
+    
+    const points = path.getSpacedPoints(16);
+    // const shapes = points.map(point => {
+    //   const geometry = new THREE.SphereGeometry(0.2, 16, 16);
+    //   const material = new THREE.MeshBasicMaterial({ color: Math.random() * 0xffffff })
+    //   const mesh = new THREE.Mesh(geometry, material);
+    //   mesh.position.set(point.x, point.y, point.z);
+    //   return mesh;
+    // });
+
+    const shapes = points.map((point, index) => {
+      const torus = this.drawTorus();
+      this.moveTo(torus, path, (1 / points.length) * index, {x:0,y:0,z:1});
+      return torus;
+    });
+
+    for(let i = 0; i < shapes.length; i++) {
+      group.add(shapes[i]);
+    }
+
+    // group.add(torus);
+  }
+
   makeElipis (group, radius) {
-
-    var matrix = new THREE.Matrix4();
-    var up = new THREE.Vector3( 0, 0, 1 );
-    var axis = new THREE.Vector3( );
-    var path = new Ellipse(radius, radius);
-
-    var torus = this.drawTorus();
-
-    group.add(torus);
+    const matrix = new THREE.Matrix4();
+    const up = new THREE.Vector3( 0, 0, 1 );
+    const axis = new THREE.Vector3( );
+    const path = new Ellipse(radius, radius);
+    // const torus = this.drawTorus();
+    const torus = this.drawTorus();
 
     function move (t) {
       // set the marker position
-      var pt = path.getPoint( t );
+      const pt = path.getPoint( t );
       // set the marker position
       torus.position.set( pt.x, pt.y, pt.z );
       // get the tangent to the curve
-      var tangent = path.getTangent( t ).normalize();
+      const tangent = path.getTangent( t ).normalize();
       // calculate the axis to rotate around
       axis.crossVectors( up, tangent ).normalize();
       // calcluate the angle between the up vector and the tangent
-      var radians = Math.acos( up.dot( tangent ) );
+      const radians = Math.acos( up.dot( tangent ) );
       // set the quaternion
       torus.quaternion.setFromAxisAngle( axis, radians );
     };
 
     new TWEEN.default.Tween({position: 0})
-      .to({position: 1}, 10000 )
+      .to({position: 1}, 10000)
       .onUpdate(function(progress) {
-        move(this.position)
+        move(this.position);
       })
       .repeat(Infinity)
       .start();
+
+    group.add(torus);
   }
 
   drawCurve2 () {
@@ -303,18 +514,17 @@ export default class Rings {
 
   drawTorus () {
     // const geometry = new THREE.BoxGeometry( 0.5, 0.5, 0.5 );
-    const geometry = new THREE.TorusGeometry(0.5, 0.25, 16, 32)
+    const geometry = new THREE.TorusGeometry(0.8, 0.25, 16, 32)
     const material    = new THREE.MeshPhongMaterial({
-      color: 'green'
-    })
+      color: Math.random() * 0xffffff
+    });
     const mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(0, 0, 0);
     mesh.rotation.set(0, 0, 0);
-    window.t = mesh;
     return mesh;
   }
 
-  drawTiny (vertex) {
+  drawTiny () {
     const geometry = new THREE.BoxGeometry( 0.5, 0.5, 0.5 );
     const loader = new THREE.TextureLoader();
     const texture = loader.load( '/images/uv.jpg' );
@@ -323,8 +533,6 @@ export default class Rings {
       map: texture
     })
     const mesh = new THREE.Mesh(geometry, material);
-    // mesh.position.set(0, 0, 0);
-    // mesh.rotation.set(0, 0, 0);
     return mesh;
   }
 
@@ -380,21 +588,21 @@ export default class Rings {
     */
   }
 
-  drawFloor() {
+  drawFloor(parent, width, height) {
     const loader = new THREE.TextureLoader();
     const texture = loader.load( '/images/uv.jpg' )
-    const geometry = new THREE.PlaneGeometry( 10, 10, 32 );
+    const geometry = new THREE.PlaneGeometry(width, height, 16, 16);
     const material = new THREE.MeshBasicMaterial({ 
       color: 0xFFFFFF,
       map: texture,
       side: THREE.DoubleSide
     });
     const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(0, -3, 0);
+    mesh.position.set(0, -8, 0);
     mesh.rotation.set(0, 0, 0);
     mesh.rotation.x = de2ra(90);
     mesh.receiveShadow = true;
-    this.scene.add(mesh);
+    parent.add(mesh);
   }
 
   drawSimple () {
@@ -497,22 +705,19 @@ export default class Rings {
     */
   }
   animate () {
-    const { scene, camera, renderer, stats, options, controls } = this;
+    const { scene, camera, renderer, stats, controls, cameraHelper } = this;
+    // this.cameraHelper.helper
     function render(time) {
-      // planet.rotation.y -= options.rotationSpeed;
       TWEEN.default.update(time);
       renderer.render(scene, camera);
       controls.update();
+      if(cameraHelper.update) {
+        cameraHelper.update();
+      }
     }
 
     function loop(time) {
       stats.update();
-      // this.timerNow = time;
-      // if(time >= this.future && this.toggle) {
-      //   const { latitude, longitude } = this.place;
-      //   this.center(latitude, longitude);
-      //   this.toggle = false;
-      // }
       render(time);
       const animationId = requestAnimationFrame(loop.bind(this));
     }
