@@ -6,9 +6,6 @@ import Maps from './Maps';
 import Widgets from './Widgets';
 import throttle from 'lodash/throttle';
 
-
-console.log(TWEEN);
-
 export default class Globe {
   constructor (container, options) {
     this.options = Object.assign({}, {

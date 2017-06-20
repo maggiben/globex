@@ -39,13 +39,15 @@
       margin: 0;
       overflow: hidden;
     }
+
     .stats {
       position: absolute;
       top: 0;
       left: 0;
       z-index: 9999;
     }
-    .globe canvas {
+    
+    .stage canvas {
       width: 100vw;
       height: 100vh;
       z-index: -9999;
@@ -54,7 +56,7 @@
 </head>
 <body>
   <div class="stats" id="stats"></div>
-  <div id="globe" class="globe"></div>
+  <div id="stage" class="stage"></div>
   <script src="https://unpkg.com/systemjs"></script>
   <script type="text/javascript">
     SystemJS.config({

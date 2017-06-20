@@ -4,8 +4,25 @@ import * as OrbitControls from 'three-orbitcontrols';
 import Stage from '../common/Stage';
 import throttle from 'lodash/throttle';
 
-const de2ra = function(degree) { 
-  return degree*(Math.PI/180);
+const de2ra = window.de2ra = function(degree) { 
+  return degree * (Math.PI/180);
+};
+const ra2deg = window.ra2deg = function(radians) { 
+  return radians * (180 / Math.PI);
+};
+
+function Ellipse ( xRadius, yRadius ) {
+  THREE.Curve.call( this );
+  // add the desired properties
+  this.xRadius = xRadius;
+  this.yRadius = yRadius;
+}
+Ellipse.prototype = Object.create( THREE.Curve.prototype );
+Ellipse.prototype.constructor = Ellipse;
+// define the getPoint function for the subClass
+Ellipse.prototype.getPoint = function ( t ) {
+  const radians = 2 * Math.PI * t;
+  return new THREE.Vector3( this.xRadius * Math.cos( radians ), this.yRadius * Math.sin( radians ), 0 );
 };
 
 export default class Rings {
@@ -18,7 +35,8 @@ export default class Rings {
         y: 0,
         width: window.innerWidth,
         height: window.innerHeight
-      }
+      },
+      segments: 128
     }, options);
 
     this.container = container;
@@ -27,8 +45,9 @@ export default class Rings {
     this.stats = this.stage.showStats();
     this.renderer = this.stage.createRenderer(this.options.view);
     this.renderer.setClearColor(0x333F47, 1);
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMapSoft = true;
+    // this.renderer.shadowMap.enabled = true;
+    // this.renderer.shadowMapSoft = true;
+    this.stage.helpers(this.scene);
     this.camera = this.stage.createCamera(this.options.view);
 
     // position and point the camera to the center of the scene
@@ -38,34 +57,42 @@ export default class Rings {
     this.controls = this.stage.setupControls();
     // this.drawSkyBox();
     this.drawFloor();
-    this.g = new THREE.Group();
-    this.drawCurve(this.g);
-    this.drawCurve3(this.g);
-    this.scene.add(this.g);
+    this.mainGroup = new THREE.Group();
+    // this.drawCurve(this.mainGroup);
+    // this.drawCurve3(this.mainGroup);
+    this.drawTube(this.mainGroup, 4)
+    this.makeElipis(this.mainGroup, 4);
+
+    this.scene.add(this.mainGroup);
     // this.drawSimple();
     // this.drawReflectingObjects();
     // this.drawBox();
     // this.scene.add(this.drawTiny());
     // this.drawReflectingObjects();
     this.scene.add(this.lights());
-    // this.g.rotation.x = de2ra(90);
+    this.mainGroup.rotation.x = THREE.Math.degToRad(90);
     container.appendChild(this.renderer.domElement);
   }
 
   drawCurve (group) {
     const curve = new THREE.EllipseCurve(
-      0,  0,            // ax, aY
-      2, 2,             // xRadius, yRadius
-      0,  2 * Math.PI,  // aStartAngle, aEndAngle
-      false,            // aClockwise
-      0                 // aRotation
+      0, 0,            // ax, aY
+      2, 2,            // xRadius, yRadius
+      0, 2 * Math.PI,  // aStartAngle, aEndAngle
+      false,           // aClockwise
+      0                // aRotation
     );
 
-    this.path = new THREE.Path( curve.getPoints( 120 ) );
+    const points = curve.getPoints(this.options.segments);
+    this.path = new THREE.Path(points);
     
     var torus = this.drawTiny();
     group.add(torus);
     const me = this;
+
+    me.move(torus, me.path, 0);
+    // me.move(torus, me.path, 0.5)
+    // me.move(torus, me.path, 1)
 
     new TWEEN.default.Tween({position: 0})
       .to({position: 1}, 10000 )
@@ -73,17 +100,36 @@ export default class Rings {
         me.move(torus, me.path, this.position)
       })
       .repeat(Infinity)
-      .start(); 
+      .start();
   }
 
   getAngle (path, position) {
-  // get the 2Dtangent to the curve
+    // get the 2Dtangent to the curve
     const tangent = path.getTangent(position).normalize();
     // change tangent to 3D
     return -( Math.atan( tangent.x / tangent.y));
   }
 
   move (mesh, path, position) {
+    const getAngle = function (path, position) {
+      // get the 2Dtangent to the curve
+      const tangent = path.getTangent(position).normalize();
+      // change tangent to 3D
+      return -( Math.atan( tangent.x / tangent.y));
+    }
+    var up = new THREE.Vector3( 0, 0, 1);
+    // get the point at position
+    var point = path.getPointAt(position);
+    mesh.position.x = point.x;
+    mesh.position.y = point.y;
+
+    const angle = getAngle(path, position);
+    // console.log('angle: ', angle)
+    // set the quaternion
+    mesh.quaternion.setFromAxisAngle( up, angle );
+  }
+
+  moveOK (mesh, path, position) {
     var up = new THREE.Vector3(0, 0, 1);
     // get the point at position
     var point = path.getPointAt(position);
@@ -92,6 +138,41 @@ export default class Rings {
     var angle = this.getAngle(path, position);
     // set the quaternion
     mesh.quaternion.setFromAxisAngle( up, angle );
+  }
+
+  makeElipis (group, radius) {
+
+    var matrix = new THREE.Matrix4();
+    var up = new THREE.Vector3( 0, 0, 1 );
+    var axis = new THREE.Vector3( );
+    var path = new Ellipse(radius, radius);
+
+    var torus = this.drawTorus();
+
+    group.add(torus);
+
+    function move (t) {
+      // set the marker position
+      var pt = path.getPoint( t );
+      // set the marker position
+      torus.position.set( pt.x, pt.y, pt.z );
+      // get the tangent to the curve
+      var tangent = path.getTangent( t ).normalize();
+      // calculate the axis to rotate around
+      axis.crossVectors( up, tangent ).normalize();
+      // calcluate the angle between the up vector and the tangent
+      var radians = Math.acos( up.dot( tangent ) );
+      // set the quaternion
+      torus.quaternion.setFromAxisAngle( axis, radians );
+    };
+
+    new TWEEN.default.Tween({position: 0})
+      .to({position: 1}, 10000 )
+      .onUpdate(function(progress) {
+        move(this.position)
+      })
+      .repeat(Infinity)
+      .start();
   }
 
   drawCurve2 () {
@@ -119,7 +200,76 @@ export default class Rings {
     this.scene.add(ellipse);
   }
 
+  drawTube (group, radius) {
+    const path = new Ellipse(radius, radius);
+    // params
+    const pathSegments = this.options.segments;
+    const tubeRadius = 0.05;
+    const radiusSegments = 16;
+    const closed = true;
+
+    const geometry = new THREE.TubeBufferGeometry( path, pathSegments, tubeRadius, radiusSegments, closed );
+    // material
+    const material = new THREE.MeshPhongMaterial({
+      color: 0xFFFF00, 
+    });    
+    // mesh
+    const mesh = new THREE.Mesh( geometry, material );
+    group.add(mesh);
+  }
+
   drawCurve3 (group) {
+    const curve = new THREE.EllipseCurve(
+      0,  0,            // ax, aY
+      2, 2,             // xRadius, yRadius
+      0,  2 * Math.PI,  // aStartAngle, aEndAngle
+      false,            // aClockwise
+      0                 // aRotation
+    );
+    // Ellipse class, which extends the virtual base class Curve
+    function Ellipse( xRadius, yRadius ) {
+      THREE.Curve.call( this );
+      // add the desired properties
+      this.xRadius = xRadius;
+      this.yRadius = yRadius;
+    }
+    Ellipse.prototype = Object.create( THREE.Curve.prototype );
+    Ellipse.prototype.constructor = Ellipse;
+    // define the getPoint function for the subClass
+    Ellipse.prototype.getPoint = function ( t ) {
+      var radians = 2 * Math.PI * t;
+      return new THREE.Vector3( this.xRadius * Math.cos( radians ),
+        this.yRadius * Math.sin( radians ),
+        0 );
+
+    };
+    const path = new Ellipse( 2.025, 2.025 );
+
+    // params
+    const pathSegments = this.options.segments;
+    const tubeRadius = 0.05;
+    const radiusSegments = 16;
+    const closed = true;
+
+    const geometry = new THREE.TubeBufferGeometry( path, pathSegments, tubeRadius, radiusSegments, closed );
+    // material
+    const material = new THREE.MeshPhongMaterial({
+      color: 0xFFFF00, 
+    });
+    
+    // mesh
+    const mesh = new THREE.Mesh( geometry, material );
+    group.add(mesh);
+    /*
+    const path = new THREE.Path( curve.getPoints( 120 ) );
+    const geometry = new THREE.TubeBufferGeometry(path, 20, 0.2, 8, true);
+    const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+    const mesh = new THREE.Mesh( geometry, material );
+    group.add( mesh );
+    */
+  }
+
+  drawCurve4 (group) {
     const curve = new THREE.EllipseCurve(
       0,  0,            // ax, aY
       2, 2,             // xRadius, yRadius
@@ -160,17 +310,21 @@ export default class Rings {
     const mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(0, 0, 0);
     mesh.rotation.set(0, 0, 0);
+    window.t = mesh;
     return mesh;
   }
 
   drawTiny (vertex) {
     const geometry = new THREE.BoxGeometry( 0.5, 0.5, 0.5 );
-    const material    = new THREE.MeshPhongMaterial({
-      color: 'red'
+    const loader = new THREE.TextureLoader();
+    const texture = loader.load( '/images/uv.jpg' );
+    const material    = new THREE.MeshBasicMaterial({
+      color: 0xFFFFFF,
+      map: texture
     })
     const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(0, 0, 0);
-    mesh.rotation.set(0, 0, 0);
+    // mesh.position.set(0, 0, 0);
+    // mesh.rotation.set(0, 0, 0);
     return mesh;
   }
 
@@ -231,7 +385,8 @@ export default class Rings {
     const texture = loader.load( '/images/uv.jpg' )
     const geometry = new THREE.PlaneGeometry( 10, 10, 32 );
     const material = new THREE.MeshBasicMaterial({ 
-      map: texture, 
+      color: 0xFFFFFF,
+      map: texture,
       side: THREE.DoubleSide
     });
     const mesh = new THREE.Mesh(geometry, material);
@@ -303,7 +458,7 @@ export default class Rings {
       return a;
     }, new THREE.Group());
 
-    var spotLight = new THREE.SpotLight( 0xffffff );
+    /*const spotLight = new THREE.SpotLight( 0xffffff );
     spotLight.position.set( 3, 30, 3 );
     spotLight.castShadow = true;
     spotLight.shadow.mapSize.width = 2048;
@@ -311,7 +466,7 @@ export default class Rings {
     spotLight.shadow.camera.near = 1;
     spotLight.shadow.camera.far = 4000;
     spotLight.shadow.camera.fov = 45;
-    lights.add( spotLight );
+    lights.add( spotLight );*/
 
     return lights;
   }

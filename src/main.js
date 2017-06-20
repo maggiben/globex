@@ -6,7 +6,7 @@ import Globe from './Globe/Globe';
 import Rings from './Rings/Rings';
 
 const params = (new URL(window.location)).searchParams;
-const container = document.getElementById('globe');
+const container = document.getElementById('stage');
 const scene = params.get('scene');
 const options = {
   view: {
@@ -19,7 +19,7 @@ const options = {
   }
 };
 
-const rings = new Rings(container, options);
+const rings = window.rings = new Rings(container, options);
 rings.animate();
 
 // const globe = new Globe(container, options);
