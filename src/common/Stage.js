@@ -17,13 +17,15 @@ export default class Stage {
 
   createRenderer ({width, height}) {
     const renderer = new THREE.WebGLRenderer({
-      precision: 'lowp',
+      // precision: 'lowp',
       // antialias: true,
       // clearAlpha: 1
     });
     renderer.setClearColor(0x000000);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(width, height);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFShadowMap; // default THREE.PCFShadowMap
     this.renderer = renderer;
     return renderer;
   }
@@ -36,7 +38,7 @@ export default class Stage {
   }
 
   createCamera ({fullWidth, fullHeight, x, y, width, height}) {
-    const camera = new THREE.PerspectiveCamera(50, width / height, 1, 5000);
+    const camera = new THREE.PerspectiveCamera(80, width / height, 1, 5000);
     camera.setViewOffset(fullWidth, fullHeight, x, y, width, height);
     camera.position.z = 1400;
     camera.lookAt(new THREE.Vector3(0, 0, 0));
