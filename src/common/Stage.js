@@ -17,7 +17,7 @@ export default class Stage {
 
   createRenderer ({width, height}) {
     const renderer = new THREE.WebGLRenderer({
-      // precision: 'lowp',
+      precision: 'lowp',
       // antialias: true,
       // clearAlpha: 1
     });
@@ -25,7 +25,7 @@ export default class Stage {
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(width, height);
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFShadowMap; // default THREE.PCFShadowMap
+    renderer.shadowMap.type = THREE.BasicShadowMap; // default THREE.PCFShadowMap
     this.renderer = renderer;
     return renderer;
   }

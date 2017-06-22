@@ -10,9 +10,9 @@
   <meta http-equiv='Expires' content='0'>
 
   <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/7.0.0/normalize.min.css" /> -->
-  <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+  <!-- <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script> -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r16/Stats.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/85/three.min.js"></script>
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/85/three.min.js"></script> -->
   <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/16.7.0/Tween.min.js"></script> -->
   <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.1/axios.min.js"></script> -->
   <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/4.3.1/turf.min.js"></script> -->
@@ -22,16 +22,6 @@
   <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"></script> -->
 
   <!-- <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script> -->
-
-  <!-- Own Scripts -->
-  <!-- <script type="text/javascript" src="./src/geoHelpers.js?asdf=rererer"></script> -->
-  <!-- <script type="text/javascript" src="./src/Earth.js?asdf=rererer"></script> -->
-  <!-- <script type="text/javascript" src="./src/Widgets.js?asdf=rererer"></script> -->
-  <!-- <script type="text/javascript" src="./src/Marker.js?asdf=rererer"></script> -->
-  <!-- <script type="text/javascript" src="./src/Stage.js?asdf=rererer"></script> -->
-  <!-- <script type="text/javascript" src="./src/Label.js?asdf=rererer"></script> -->
-  <!-- <script type="text/javascript" src="./src/Path.js?asdf=rererer"></script> -->
-  <!-- <script type="text/javascript" src="./src/Map.js?asdf=rererer"></script> -->
   <style>
     html, body {
       height: 100%;
@@ -63,6 +53,27 @@
       baseURL: './src',
       defaultExtension: 'js',
       transpiler: 'plugin-babel',
+      meta: {
+        'THREE': {
+          format: 'global',
+          exports: 'THREE', // the global property to take as the module value
+        },
+        'wagner/base': {
+          format: 'global',
+          deps: [
+            // dependencies to load before this module
+            'wagner/'
+          ]
+        },
+        'wagner/': {
+          format: 'global',
+          exports: 'WAGNER', // the global property to take as the module value
+          deps: [
+            // dependencies to load before this module
+            'THREE'
+          ]
+        }
+      },
       map: {
         'plugin-babel': 'https://rawgit.com/systemjs/plugin-babel/master/plugin-babel.js',
         'systemjs-babel-build': 'https://rawgit.com/systemjs/plugin-babel/master/systemjs-babel-browser.js',
@@ -72,10 +83,16 @@
         'css': 'https://unpkg.com/systemjs-plugin-css',
         'socket.io-client' : 'https://unpkg.com/socket.io-client/dist/socket.io.js',
         'three': 'https://unpkg.com/three/build/three.min.js',
+        'THREE': 'https://unpkg.com/three/build/three.min.js',
         'three-orbitcontrols': 'https://unpkg.com/three-orbitcontrols/OrbitControls.js',
         'lodash': 'https://unpkg.com/lodash',
         'turf': 'https://unpkg.com/turf/turf.min.js',
-        'tween': 'https://unpkg.com/tween.js/src/Tween.js'
+        'tween': 'https://unpkg.com/tween.js/src/Tween.js',
+        'tooloud': 'https://unpkg.com/tooloud/dist/tooloud.min.js',
+        'three-effectcomposer-es6': 'https://unpkg.com/three-effectcomposer-es6@0.0.4/dist/index.js',
+        'wagner/': 'https://unpkg.com/@trakout/wagner/Wagner.js',
+        'wagner/base': 'https://unpkg.com/@trakout/wagner/Wagner.base.js',
+        'wagner/ShaderLoader': 'https://unpkg.com/@trakout/wagner/ShaderLoader.js'
       },
       packages: {
         './src': {

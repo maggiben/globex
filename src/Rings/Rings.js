@@ -1,6 +1,10 @@
-import * as THREE from 'three';
+import * as THREE from 'THREE';
+import EffectComposer, { RenderPass, ShaderPass, CopyShader } from 'three-effectcomposer-es6';
+import 'wagner/';
+import 'wagner/base';
 import * as TWEEN from 'tween';
 import * as OrbitControls from 'three-orbitcontrols';
+import { noise, perlin, worley } from '../common/Textures';
 import Stage from '../common/Stage';
 import throttle from 'lodash/throttle';
 
@@ -75,7 +79,7 @@ export default class Rings {
 
     this.controls = this.stage.setupControls();
 
-    // this.drawSkyBox();
+    this.drawSkyBox();
     this.mainGroup = new THREE.Group();
     // this.camContainer.add(this.camera);
     this.drawFloor(this.mainGroup, this.options.radius * 4, this.options.radius * 4);
@@ -90,9 +94,34 @@ export default class Rings {
     // this.drawCurve3(this.mainGroup);
     
 
-    // this.makeElipis(this.mainGroup, 4);
 
-    // this.moveCamera(this.mainGroup, 4);
+    WAGNER.fragmentShadersPath = 'https://rawgit.com/spite/Wagner/master/fragment-shaders/';
+    WAGNER.vertexShadersPath = 'https://rawgit.com/spite/Wagner/master/vertex-shaders/';
+    /*
+    WAGNER.ZoomBlurPass = function() {
+      WAGNER.Pass.call( this );
+      WAGNER.log( 'ZoomBlurPass Pass constructor' );
+      this.loadShader( 'zoom-blur-fs.glsl' );
+      this.params.center = new THREE.Vector2( 0.5, 0.5 );
+      this.params.strength = 2;
+    };
+    WAGNER.ZoomBlurPass.prototype = Object.create( WAGNER.Pass.prototype );
+    WAGNER.ZoomBlurPass.prototype.run = function( c ) {
+      this.shader.uniforms.center.value.copy ( this.params.center );
+      this.shader.uniforms.strength.value = this.params.strength;
+      c.pass( this.shader );
+    };
+  */
+    this.composer = new WAGNER.Composer( this.renderer, { useRGBA: false } );
+    this.composer.setSize(this.options.view.width, this.options.view.height);
+    this.zoomBlurPass = new WAGNER.ZoomBlurPass();
+    this.zoomBlurPass.params.strength = .05;
+    this.bloomPass = new WAGNER.MultiPassBloomPass();
+    this.bloomPass.params.strength = .5;
+    this.dotScreenPass = new WAGNER.DotScreenPass();
+    this.dldVideoPass = new WAGNER.OldVideoPass();
+
+
     // this.drawSimple();
     // this.drawReflectingObjects();
     // this.drawBox();
@@ -106,36 +135,22 @@ export default class Rings {
     // this.moveCamera(this.camera, this.options.radius);
 
     this.addCameraLight(this.cameraGroup);
+    // this.moveCamera(this.cameraHelper.camera, this.options.radius);
     this.moveCamera(this.camera, this.options.radius);
     
     this.scene.add(this.mainGroup);
-    // this.scene.add(this.lights());
+    this.scene.add(this.lights());
     // this.mainGroup.rotation.x = THREE.Math.degToRad(90);
     container.appendChild(this.renderer.domElement);
   }
 
-  // cameraHelper (parent) {
-  //   const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 5000 );
-  //   const helper = new THREE.CameraHelper(camera);
-  //   camera.position.set(0, 8, 8);
-  //   camera.lookAt(this.scene.position);
-  //   parent.add(camera);
-  //   // this.moveCamera(camera, 4);
-  // }
   addCameraLight (camera) {
-    const light = new THREE.SpotLight(0xFFFFFF, 4, 200, Math.PI/3, 0.8);
+    //                      SpotLight(color, intensity, distance, angle, penumbra, decay)
+    const light = new THREE.SpotLight(0xFFFFFF, 4, 100, Math.PI/6, 0.5, 2);
     // light.position.copy(camera.children[0].position);
     // light.target = camera.children[0].position;
     light.castShadow = true;
     light.name = 'frontera';
-
-    light.shadow.mapSize.width = 1024;
-    light.shadow.mapSize.height = 1024;
-
-    light.shadow.camera.near = 1;
-    light.shadow.camera.far = 200;
-    light.shadow.camera.fov = 10;
-
     // const helper = new THREE.SpotLightHelper(light);
     // this.updatees.push(helper);
     // camera.add(helper);
@@ -165,6 +180,7 @@ export default class Rings {
 
     group.add(light);
   }
+
   animatePath(group, radius) {
     const path = new Ellipse(radius, radius);
     const box = this.box = this.drawTiny(2, 2, 2);
@@ -264,75 +280,6 @@ export default class Rings {
     shape.quaternion.setFromAxisAngle( axis, radians );
   }
 
-  moveCameraXXX (group, radius) {
-    const matrix = new THREE.Matrix4();
-    const up = new THREE.Vector3( 0, 0, 1 );
-    const axis = new THREE.Vector3( );
-    const path = new Ellipse(radius, radius);
-    const box = this.drawTiny();
-    const me = this;
-
-    new TWEEN.default.Tween({position: 1})
-      .to({position: 0}, 10000)
-      .onUpdate(function(progress) {
-        me.moveTo(box, path, this.position);
-      })
-      .repeat(Infinity)
-      .start();
-    group.add(box);
-  }
-
-  moveCameraXXX (camera, radius) {
-    const path = new Ellipse(radius, radius);
-    const { moveTo } = this;
-
-    new TWEEN.default.Tween({position: 1})
-      .to({position: 0}, 10000)
-      .onUpdate(function(progress) {
-        moveTo(camera, path, this.position, {x:0,y:1,z:0});
-      })
-      .repeat(Infinity)
-      .start();
-  }
-
-  moveCameraXX (camera, radius) {
-    const path = new Ellipse(radius, radius);
-    // const matrix = new THREE.Matrix4();
-    // const up = new THREE.Vector3( 0, 0, 1 );
-    // const axis = new THREE.Vector3( );
-    // const torus = this.drawTorus();
-
-    // function moveTo(object, t) {
-    //   // set the marker position
-    //   const pt = path.getPoint( t );
-    //   // set the marker position
-    //   torus.position.set( pt.x, pt.y, pt.z );
-    //   // get the tangent to the curve
-    //   const tangent = path.getTangent( t ).normalize();
-    //   // calculate the axis to rotate around
-    //   axis.crossVectors( up, tangent ).normalize();
-    //   // calcluate the angle between the up vector and the tangent
-    //   const radians = Math.acos( up.dot( tangent ) );
-    //   // set the quaternion
-    //   torus.quaternion.setFromAxisAngle( axis, radians );
-    // };
-
-    const point = path.getPoint(0.5);
-    const points = path.getSpacedPoints(16);
-    this.camera.position.copy(point);
-    // camera.position.set(points[1].x, points[1].y, points[1].z);
-    // camera.lookAt(points[2].x, points[2].y, points[2].z);
-    // this.moveTo(this.camera, path, 0.5);
-
-    // new TWEEN.default.Tween({position: 0})
-    //   .to({position: 1}, 10000)
-    //   .onUpdate(function(progress) {
-    //     moveTo(camera, path, this.position);
-    //   })
-    //   .repeat(Infinity)
-    //   .start();
-  }
-
   moveCamera (camera, radius) {
     const { moveTo, cameraGroup, box, scene } = this;
     const path = new Ellipse(radius, radius);
@@ -354,7 +301,7 @@ export default class Rings {
     // camera.useQuaternion = true;
 
     new TWEEN.default.Tween({position: 1})
-      .to({position: 0}, 20000)
+      .to({position: 0}, 30000)
       .onUpdate(function(progress) {
         const point_a = path.getPoint(this.position);
         const point_z = path.getPoint(this.position + 0.0001);
@@ -368,16 +315,6 @@ export default class Rings {
         // camera.lookAt(point_b);
         light.position.copy(point_z);
         light.target = camera;
-        // cameraGroup.children[4].quaternion.setFromAxisAngle(axis, radians);
-        // camera.rotation.z = THREE.Math.degToRad(0);
-
-        // console.log(tangent)
-        // moveTo(camera, path, this.position, {x:0,y:1,z:0});
-        // const point = path.getPoint(this.position + 0.02);
-        // const vec = new THREE.Vector3(point.x, point.y, point.z);
-        // cameraGroup.rotation.x = THREE.Math.degToRad(45);
-        // camera.rotation.x = THREE.Math.degToRad(45);
-        // camera.lookAt(vec.position)
       })
       .repeat(Infinity)
       .start();
@@ -388,7 +325,7 @@ export default class Rings {
     // const torus = this.drawTorus();
     // this.moveTo(torus, path, 0.5);
     
-    const points = path.getSpacedPoints(16);
+    const points = path.getSpacedPoints(24);
     // const shapes = points.map(point => {
     //   const geometry = new THREE.SphereGeometry(0.2, 16, 16);
     //   const material = new THREE.MeshBasicMaterial({ color: Math.random() * 0xffffff })
@@ -572,19 +509,42 @@ export default class Rings {
 
   drawTorus () {
     // const geometry = new THREE.BoxGeometry( 0.5, 0.5, 0.5 );
-    const geometry = new THREE.TorusGeometry(2, 0.5, 64, 64)
+    const geometry = new THREE.TorusGeometry(2, 0.5, 6, 48)
     // const material = new THREE.MeshPhongMaterial({
     //   // color: Math.random() * 0xffffff
     //   color: 0xffffff,
     //   shading: THREE.FlatShading,
     //   side: THREE.DoubleSide
     // });
-    const material = new THREE.MeshPhongMaterial({ color: 0x11111f, side: THREE.DoubleSide, opacity: .95, transparent: true })
+    // const material = new THREE.MeshPhongMaterial({ color: 0x11111f, side: THREE.DoubleSide, opacity: .95, transparent: true })
+    
+    const newBump = this.makeBump().clone();
+    newBump.repeat.set( Math.random() * 124, Math.random() * 124 );
+    newBump.offset.set( Math.random() * 10, Math.random() * 10);
+
+    const newRough = this.makeRoughnessMap().clone();
+    // newBump.repeat.set( Math.random() * 4, Math.random() * 4 );
+    newRough.offset.set( Math.random() * 10, Math.random() * 10);
+
+    const material = new THREE.MeshStandardMaterial({ 
+      color: 0x222222, 
+      side: THREE.DoubleSide,
+      map: this.makeRoughnessMap(),
+      roughness: 0.6,
+      emissive: 0x111111,
+      metalness: 0.5,
+      bumpMap: newBump,
+      emissiveMap: newRough,
+      roughnessMap: newBump,
+      metalnessMap: newRough,
+      bumpScale: 0.01
+    });
+
     const mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(0, 0, 0);
     mesh.rotation.set(0, 0, 0);
     mesh.castShadow = true;
-    // mesh.receiveShadow = true;
+    mesh.receiveShadow = true;
     return mesh;
   }
 
@@ -600,24 +560,6 @@ export default class Rings {
     mesh.castShadow = true;
     mesh.receiveShadow = true;    
     return mesh;
-  }
-
-  drawBox (vertex) {
-    const geometry = new THREE.BoxGeometry( 2, 2, 2 );
-    // var material = new THREE.MeshLambertMaterial({
-    //   color: 0x9C529C,
-    //   transparent: true
-    // });
-    const material    = new THREE.MeshPhongMaterial({
-      color: 'gold'
-    })
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(0, 0, 0);
-    mesh.rotation.set(0, 0, 0);
-    mesh.scale.set(1, 1, 1);
-    // mesh.doubleSided = true;
-    // mesh.castShadow = true;
-    this.scene.add(mesh);
   }
 
   drawReflectingObjects () {
@@ -654,42 +596,82 @@ export default class Rings {
     */
   }
 
+  makeBump () {
+    if(!this.mapHeight) {
+      const mapHeight = this.mapHeight = new THREE.CanvasTexture(noise(512, 512, 75));
+      mapHeight.anisotropy = 2;
+      mapHeight.repeat.set( 24, 24 );
+      // mapHeight.offset.set( 0.001, 0.001 );
+      mapHeight.wrapS = mapHeight.wrapT = THREE.RepeatWrapping;
+      mapHeight.format = THREE.RGBFormat;
+      return this.mapHeight;
+    } else {
+      return this.mapHeight;
+    }
+  }
+
+  makeRoughnessMap () {
+    if(!this.roughnessMap) {
+      const roughnessMap = this.roughnessMap = new THREE.CanvasTexture(perlin(128, 128, 75));
+      roughnessMap.anisotropy = 2;
+      roughnessMap.repeat.set( 3, 3 );
+      // roughnessMap.offset.set( 0.001, 0.001 );
+      roughnessMap.wrapS = roughnessMap.wrapT = THREE.RepeatWrapping;
+      roughnessMap.format = THREE.RGBFormat;
+      return this.roughnessMap;
+    } else {
+      return this.roughnessMap;
+    }
+  }
+
+  makeWorleyMap () {
+    if(!this.worleyMap) {
+      const worleyMap = this.worleyMap = new THREE.CanvasTexture(worley(128, 128, 75));
+      worleyMap.anisotropy = 2;
+      worleyMap.repeat.set( 3, 3 );
+      // worleyMap.offset.set( 0.001, 0.001 );
+      worleyMap.wrapS = worleyMap.wrapT = THREE.RepeatWrapping;
+      worleyMap.format = THREE.RGBFormat;
+      return this.worleyMap;
+    } else {
+      return this.worleyMap;
+    }
+  }
+
   drawFloor(parent, width, height) {
-    const loader = new THREE.TextureLoader();
-    const texture = loader.load( '/images/uv.jpg' )
     const geometry = new THREE.PlaneGeometry(width, height);
     // const material = new THREE.MeshPhongMaterial({ 
     //   color: 0xFFFFFF,
-    //   // map: texture,
     //   side: THREE.DoubleSide,
     //   specular: 0x009900, 
-    //   shininess: 10, 
-    //   shading: THREE.FlatShading
+    //   shininess: 1, 
+    //   shading: THREE.FlatShading,
+    //   bumpMap: this.makeBump(),
+    //   bumpScale: 1,
     // });
-    const material = new THREE.MeshPhongMaterial({ color: 0x11111f, side: THREE.DoubleSide, opacity: .95, transparent: true });
+
+    const material = new THREE.MeshStandardMaterial({ 
+      color: 0x11111f, 
+      side: THREE.DoubleSide,
+      // map: this.makeRoughnessMap(),
+      roughness: 0.65,
+      metalness: 0.35,
+      bumpMap: this.makeBump(),
+      bumpScale: 0.1,
+      shading: THREE.FlatShading,
+      roughnessMap: this.makeRoughnessMap(),
+      metalnessMap: this.makeBump(),
+    });
+
     const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(0, -3, 0);
+    mesh.position.set(0, -2.5, 0);
     mesh.rotation.set(0, 0, 0);
     mesh.rotation.x = de2ra(90);
+    // mesh.castShadow = true;
     mesh.receiveShadow = true;
     parent.add(mesh);
   }
-
-  drawSimple () {
-    const geometry = new THREE.BoxGeometry( 2, 2, 2 );
-    const material    = new THREE.MeshPhongMaterial({
-      color: 'gold',
-      envMap: this.reflectionCube
-    })
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(0, 0, 0);
-    mesh.rotation.set(0, 0, 0);
-    mesh.scale.set(1, 1, 1);
-    // mesh.doubleSided = true;
-    // mesh.castShadow = true;
-    this.scene.add(mesh);
-  }
-
+ 
   drawSkyBox() {
     // define path and box sides images
     this.reflectionCube = new THREE.CubeTextureLoader()
@@ -707,25 +689,17 @@ export default class Rings {
   }
 
   lights () {
-    var pointLight = new THREE.PointLight( 0xffffff, 0.7 );
-    this.camera.add(pointLight);
-
     const options = [{
       color: 0xFF0000,
       intensity: 1,
       position: {x: 60, y: 30, z: 90},
       name: 'Back light'
-    }/*, {
-      color: 'white',
-      intensity: 0.15,
-      position: {x: -60, y: -30, z: 0},
-      name: 'Key light'
     }, {
-      color: 'white',
-      intensity: 0.2,
-      position: {x: 9, y: 9, z: 6},
-      name: 'Fill light'
-    }*/];
+      color: 'blue',
+      intensity: 1,
+      position: {x: -120, y: 30, z: 0},
+      name: 'Key light'
+    }];
 
     // const lights = options.map(option => {
     //   const { color, intensity, position, name } = option;
@@ -754,11 +728,6 @@ export default class Rings {
     spotLight.position.set( 3, 40, 3 );
     spotLight.castShadow = true;
     spotLight.intensity = 0.5;
-    spotLight.shadow.mapSize.width = 2048;
-    spotLight.shadow.mapSize.height = 2048;
-    spotLight.shadow.camera.near = 1;
-    spotLight.shadow.camera.far = 4000;
-    spotLight.shadow.camera.fov = 45;
     lights.add(spotLight);
 
     lights.children.forEach(light => {
@@ -771,18 +740,21 @@ export default class Rings {
   }
 
   animate () {
-    const { scene, camera, renderer, stats, controls, cameraHelper, updatees } = this;
-    // this.cameraHelper.helper
+    const { scene, camera, renderer, stats, controls, cameraHelper, updatees, composer, zoomBlurPass, bloomPass, dotScreenPass } = this;
     function render(time) {
       TWEEN.default.update(time);
-      renderer.render(scene, camera);
+      // renderer.render(scene, camera);
+      composer.reset();
+      composer.render( scene, camera );
+      // composer.pass(zoomBlurPass);
+      composer.pass(bloomPass);
+      composer.pass(dotScreenPass);
+      composer.toScreen();
+
       controls.update();
       updatees.forEach(helper => {
-        return helper.update();
+        // return helper.update();
       });
-      /*if(cameraHelper.update) {
-        cameraHelper.update();
-      }*/
     }
 
     function loop(time) {
