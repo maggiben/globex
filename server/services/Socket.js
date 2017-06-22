@@ -15,7 +15,7 @@ const getRedis = function () {
 
 class SocketClient {
   constructor (io, socket) {
-    const eventTypes = ['disconnect', 'echo', 'ping', 'join', 'leave', 'timesync'];
+    const eventTypes = ['disconnect', 'echo', 'ping', 'join', 'leave', 'timesync', 'move'];
     this.io = io;
     this.socket = socket;
 
@@ -45,6 +45,11 @@ class SocketClient {
       id: data && 'id' in data ? data.id : null,
       result: Date.now()
     });
+  }
+
+  move = ({ position, rotation }) => {
+    debug(position, rotation);
+    return this.io.sockets.emit('move:camera', { position, rotation });
   }
 
   join = options => {
@@ -96,7 +101,8 @@ export class ScreenSocket {
     }
 
     debug('socket namespace: ', namespace);
-    this.io = io.of(namespace);
+    // this.io = io.of(namespace);
+    this.io = io;
     // handshake middleware
     this.io.use(this.handshake);
     // Listeners

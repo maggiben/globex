@@ -24,7 +24,7 @@
     "redis": "^2.7.1",
     "serve-favicon": "^2.4.3",
     "socket.io": "^2.0.3",
-    "socket.io-redis": "^4.0.1",
+    "socket.io-redis": "^5.1.0",
     "timesync": "^0.4.0",
     "uuid": "^3.1.0"
   },
@@ -45,7 +45,6 @@
     "nodemon": "^1.11.0",
     "proxyquire": "^1.7.11",
     "socket-tester": "^1.2.1",
-    "socket.io-client": "^1.7.3",
     "supertest": "^3.0.0"
   },
   "author": "benjamin maggi",

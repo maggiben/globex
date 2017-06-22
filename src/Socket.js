@@ -15,8 +15,8 @@ const socket = io('http://localhost:8080', {
 
 const ts = timesync.create({
   server: socket,
-  interval: 5000,
-  delay: 5000
+  interval: 50000,
+  delay: 50000
 });
 
 var done = false;

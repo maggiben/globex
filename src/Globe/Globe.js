@@ -1,3 +1,5 @@
+// import Stage from './Stage';
+
 export default class Globe {
   constructor (container, options) {
     this.options = Object.assign({}, {
@@ -94,17 +96,17 @@ export default class Globe {
       this.camera.rotation.copy(rotation);
     }, false);
 
-    // this.controls.addEventListener('change', ({target}) => {
-      // const camera = target.object;
-      // const dispatch = _.throttle(() => {
-        // const event = new CustomEvent('sendToSocket', { detail: camera });
-        // document.dispatchEvent(event);
-        // console.log(camera)
-      // }, 100, { trailing: false });
+    this.controls.addEventListener('change', ({target}) => {
+      const camera = target.object;
+      const dispatch = _.throttle(() => {
+        const event = new CustomEvent('sendToSocket', { detail: camera });
+        document.dispatchEvent(event);
+        console.log(camera)
+      }, 100, { trailing: false });
       // const event = new CustomEvent('interact', {detail: camera});
-      // const event = new CustomEvent('sendToSocket', {detail: camera});
-      // document.dispatchEvent(event);
-    // }, false);
+      const event = new CustomEvent('sendToSocket', {detail: camera});
+      document.dispatchEvent(event);
+    }, false);
 
     this.controls.addEventListener('change', _.throttle(this.dispatch, 100, { trailing: true }));
   }

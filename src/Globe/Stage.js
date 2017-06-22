@@ -1,4 +1,6 @@
-class Stage {
+import * as THREE from 'three';
+
+export default export default class Stage {
   constructor (container) {
     /*
     window.innerWidth, window.innerHeight
