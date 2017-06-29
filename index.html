@@ -111,11 +111,11 @@
       }
     };
 
-    const { protocol, hostname, port } = window.location;
+    const { protocol, hostname, port,pathname } = window.location;
     const query = URI.buildQuery({
       'epoch': Date.now()
     });
-    const uri = new URI().directory('/src').filename('Main.js').query(query);
+    const uri = new URI().directory(pathname.concat('src')).filename('Main.js').query(query);
     console.info('loading entry point: ', uri.toString());
     SystemJS.config(config);
     SystemJS.import(uri.resource());
