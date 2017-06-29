@@ -104,7 +104,7 @@ charts.donut = function module() {
             graph = this;
 
             // D3 helper function to populate pie slice parameters from array data
-            donut = d3.layout.pie().value(function(d) {
+            donut = d3.pie().value(function(d) {
                 return d.value;
             });
 

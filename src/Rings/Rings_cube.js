@@ -68,38 +68,35 @@ export default class Rings {
     this.updatees = [];
     this.container = container;
     this.scene = window.scene = new THREE.Scene();
+    // this.scene.fog = new THREE.FogExp2( 0x000000, 0.015 );
     this.stage = new Stage(container);
     this.stats = this.stage.showStats();
     this.renderer = this.stage.createRenderer(this.options.view);
+    // this.renderer.setClearColor(0x333F47, 1);
     // this.stage.helpers(this.scene);
     this.camera = this.stage.createCamera(this.options.view, { position: [0, 38, 8] });
     this.camera.position.set(0, 38, 8);
     this.camera.lookAt(this.scene.position);
 
 
+    this.cameraGroup = new THREE.Group();
     this.cameraHelper = this.stage.createCameraHelper(this.options.view);
     this.cameraHelper.camera.position.set(0, 20, 0);
     this.cameraHelper.camera.lookAt(this.scene.position);   
     
     this.updatees.push(this.cameraHelper.helper);
 
-    this.cubeCamera = new THREE.CubeCamera( 1, 5000, 256); 
-    this.cubeCamera.renderTarget.texture.minFilter = THREE.LinearMipMapLinearFilter;
-
-    this.cubeCamera2 = new THREE.CubeCamera( 1, 5000, 256); 
-    this.cubeCamera2.renderTarget.texture.minFilter = THREE.LinearMipMapLinearFilter;
-
-    
-
-    this.scene.add(this.cubeCamera);
-    this.scene.add(this.cubeCamera2);
-
     this.groups.cameras.add(this.cameraHelper.helper);
     this.groups.cameras.add(this.cameraHelper.camera);
     this.groups.cameras.add(this.camera);
+    // this.cubeCamera = new THREE.CubeCamera( 1, 5000, 256); 
+    // this.cubeCamera.renderTarget.texture.minFilter = THREE.LinearMipMapLinearFilter;
+    // this.groups.cameras.add(this.cubeCamera);
 
     this.scene.add(this.groups.cameras);
-    // this.addCameraLight(this.groups.cameras);
+    this.addCameraLight(this.groups.cameras);
+    // this.moveCamera(this.cameraHelper.camera, this.options.radius);
+    this.moveCamera(this.camera, this.options.radius);
 
     /* Controls */
     this.controls = this.stage.setupControls();
@@ -116,18 +113,14 @@ export default class Rings {
     this.groups.lights.add(this.placeLights());
     this.scene.add(this.groups.lights);
 
+
     /* Actors */
-    // this.groups.actors.add(this.animateLight(this.options.radius));
+    this.groups.actors.add(this.animateLight(this.options.radius));
     this.groups.actors.add(this.placeObjects(this.options.radius, this.options.segments));
-    
+    // this.groups.actors.add(this.demo());
     this.scene.add(this.groups.actors);
-    // wireframe(this.groups.actors);
-    this.groups.actors.add(this.demo());
-    // this.groups.actors.add(this.drawTiny(5,5,5, [10,2.5,0]));
+    wireframe(this.groups.actors);
 
-
-    // this.moveCamera(this.cameraHelper.camera, this.options.radius);
-    this.moveCamera(this.camera, this.options.radius);
     container.appendChild(this.renderer.domElement);
   }
 
@@ -196,42 +189,45 @@ export default class Rings {
   }
 
   moveCamera (camera, radius) {
-    const { moveTo, cameraGroup, box, scene, cubeCamera, cubeCamera2 } = this;
+    const { moveTo, cameraGroup, box, scene } = this;
     const path = new Ellipse(radius, radius);
     const up = new THREE.Vector3( 0, 0, 1 );
     const axis = new THREE.Vector3();
 
     const light = scene.getObjectByName('frontera');
-    const demo = scene.getObjectByName('demo');
+
+    // const point = path.getPoint(0.5);
+    // camera.position.set(point.x, point.y, point.z);
+    // const point2 = path.getPoint(0.55);
+    // camera.lookAt(point2);
 
 
+    // camera.position.set(points[0].x, points[0].y, points[0].z);
+    // const vector = new THREE.Vector3(points[1].x, points[1].y, points[1].z);
+    // this.cameraGroup.rotation.x = THREE.Math.degToRad(45);
+    // camera.lookAt(vector);
+    // camera.useQuaternion = true;
 
     new TWEEN.default.Tween({position: 1})
       .to({position: 0}, 30000)
       .onUpdate(function(progress) {
         const point_a = path.getPoint(this.position);
         const point_z = path.getPoint(this.position + 0.0001);
-        const point_n = path.getPoint(this.position - 0.010);
         // camera.position.set(point_a.x, point_a.y, point_a.z);
-        
+        camera.position.copy(point_a);
         const tangent = path.getTangent(this.position + 0.00005).normalize();
         axis.crossVectors(up, tangent).normalize();
+        // const radians = Math.atan2(tangent.y, tangent.x); //Math.acos(up.dot(tangent));
         const radians = Math.acos(up.dot(tangent));
-
-        camera.position.copy(point_a);
         camera.quaternion.setFromAxisAngle(axis, radians);
-        
-        // light.position.copy(point_z);
-        // light.target = camera;
-
-        cubeCamera.position.copy(point_n);
-        cubeCamera2.position.copy(point_n);
-
-        demo.position.copy(point_n);
+        // camera.lookAt(point_b);
+        light.position.copy(point_z);
+        light.target = camera;
       })
       .repeat(Infinity)
       .start();
   }
+
 
   makeBump () {
     if(!this.mapHeight) {
@@ -309,8 +305,9 @@ export default class Rings {
   }
 
   ring () {
+    // const geometry = new THREE.BoxGeometry( 0.5, 0.5, 0.5 );
     const geometry = new THREE.TorusGeometry(2, 0.5, 6, 48)
-    const material = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
+    
     const mesh = new THREE.Mesh(geometry, this.getDonutMaterial());
     mesh.name = 'donut';
     mesh.position.set(0, 0, 0);
@@ -349,6 +346,7 @@ export default class Rings {
   }
 
   gloss () {
+    
     const texture = new THREE.TextureLoader().load('/images/metal2b.jpg');
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
     texture.repeat.multiplyScalar( 24 );
@@ -361,56 +359,82 @@ export default class Rings {
       shininess: 200, 
       shading: THREE.FlatShading,
       map: texture,
-      specularMap: texture
+      specularMap: texture,
+      // envMap: this.cubeCamera.renderTarget.texture
     });
-
     material.color.setHSL( 0.1, 0.25, 0.25 );
     material.specular.setHSL( 0, 0, 0.1 );
     return material;
   }
   
+  demo () {
+    const geometry = new THREE.BoxGeometry( 5, 5, 5 );
+    const material = new THREE.MeshBasicMaterial({
+      color: 0xFFFFFF,
+      // envMap: this.cubeCamera.renderTarget.texture
+    });
+    const cube = new THREE.Mesh(geometry, material);
+    // cube.castShadow = true;
+    // cube.receiveShadow = true;
+    cube.position.set(0, 2, 0);
+    return cube;
+  }
+
   drawFloor(width, height) {
     const geometry = new THREE.PlaneGeometry(width, height);
-    const material = new THREE.MeshPhongMaterial({ 
-      color: 0xFFFFFF,
-      side: THREE.DoubleSide,
-      specular: 0x009900, 
-      shininess: 1, 
-      shading: THREE.FlatShading
-    });
     const mesh = new THREE.Mesh(geometry, this.gloss());
     mesh.name = 'floor';
     mesh.position.set(0, -2.5, 0);
     mesh.rotation.set(0, 0, 0);
     mesh.rotation.x = de2ra(90);
     mesh.receiveShadow = true;
-
+    
     return mesh;
   }
  
+  drawSkyBox() {
+    // define path and box sides images
+    this.reflectionCube = new THREE.CubeTextureLoader()
+    .setPath('/images/skybox/')
+    .load([
+      'sbox_px.jpg', 
+      'sbox_nx.jpg', 
+      'sbox_py.jpg', 
+      'sbox_ny.jpg', 
+      'sbox_pz.jpg', 
+      'sbox_nz.jpg'
+    ]);
+    this.reflectionCube.format = THREE.RGBFormat;
+    this.scene.background = this.reflectionCube;
+  }
+
+  addHelpers () {
+
+  }
+
   placeLights (container) {
     const options = [{
       type: 'DirectionalLight',
       color: 0xFF0000,
       intensity: 1,
       position: [60, 30, 90],
-      // castShadow: true
+      castShadow: true
     }, {
       type: 'DirectionalLight',
       color: 0x0000FF,
       intensity: 1,
       position: [-120, 30, 0],
-      // castShadow: true
+      castShadow: true
     }, {
       type: 'SpotLight',
       color: 0xFFFFFF,
       intensity: 1,
       position: [3, 40, 3],
-      // castShadow: true,
+      castShadow: true,
     }];
 
     const lights = options.map(function (option, index) {
-      const { color, intensity, position, name, type, castShadow = false } = option;
+      const { color, intensity, position, name, type, castShadow } = option;
       let light = new THREE[type](color);
       light.position.fromArray(position);
       light.intensity = intensity;
@@ -424,96 +448,25 @@ export default class Rings {
     }, new THREE.Group());
 
     /* attach helpers */
-    // lights.children.forEach(light => {
-    //   const helper = new THREE[`${light.type}Helper`](light);
-    //   this.updatees.push(helper);
-    //   lights.add(helper);
-    // });
+    lights.children.forEach(light => {
+      const helper = new THREE[`${light.type}Helper`](light);
+      this.updatees.push(helper);
+      lights.add(helper);
+    });
 
     return lights;
   }
 
-  drawTiny (width, height, depth, position) {
-    const geometry = new THREE.BoxGeometry(width, height, depth);
-    const loader = new THREE.TextureLoader();
-    const texture = loader.load( '/images/uv.jpg' );
-    const material    = new THREE.MeshBasicMaterial({
-      color: 0xFFFFFF,
-      map: texture
-    });
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.fromArray(position);
-    return mesh;
-  }
-
-  demo () {
-    const geometry = new THREE.SphereBufferGeometry( 1, 32, 32 );
-    const material = this.mirrorMaterial = new THREE.MeshBasicMaterial({
-      color: 0xFFFFFF,
-      envMap: this.cubeCamera2.renderTarget.texture
-    });
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.name = 'demo';
-    // mesh.castShadow = true;
-    // mesh.receiveShadow = true;
-
-    // const { cubeCamera } = this;
-    // new TWEEN.default.Tween({position: 1})
-    //   .to({position: 0}, 30000)
-    //   .onUpdate(function(progress) {
-    //     mesh.material.envMap = cubeCamera.renderTarget.texture;
-    //     mesh.material.needsUpdate = true;
-    //   })
-    //   .repeat(Infinity)
-    //   .start();
-
-    return mesh;
-  }
-
   animate () {
-    const {
-      scene,
-      camera,
-      renderer,
-      stats,
-      controls,
-      cameraHelper,
-      updatees,
-      composer,
-      zoomBlurPass,
-      bloomPass,
-      dotScreenPass,
-      cubeCamera,
-      cubeCamera2,
-      mirrorMaterial
-    } = this;
-
-    const demo = scene.getObjectByName('demo');
-    let count = 0;
-
-    function updateEnv () {
-      demo.visible = false;
-      // pingpong
-      if ( count % 2 === 0 ) {
-        demo.material.envMap = cubeCamera.renderTarget.texture;
-        cubeCamera2.updateCubeMap( renderer, scene );
-      } else {
-        demo.material.envMap = cubeCamera2.renderTarget.texture;
-        cubeCamera.updateCubeMap( renderer, scene );
-      }
-      count ++;
-      demo.visible = true;
-    }
-
+    const { scene, camera, renderer, stats, controls, cameraHelper, updatees, cubeCamera} = this;
     function render(time) {
-      
-      if(demo) {
-         updateEnv();
-      }
-
       TWEEN.default.update(time);
-      renderer.render(scene, camera);
       controls.update();
+      // cubeCamera.updateCubeMap(renderer, scene);
+      // const floor = scene.getObjectByName('floor');
+      // floor.material.envMap = cubeCamera.renderTarget.texture;
+
+      renderer.render(scene, camera);
       // updatees.forEach(helper => {
       //   return helper.update();
       // });
