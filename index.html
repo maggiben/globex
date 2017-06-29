@@ -53,6 +53,27 @@
       baseURL: './src',
       defaultExtension: 'js',
       transpiler: 'plugin-babel',
+      map: {
+        'plugin-babel': 'https://rawgit.com/systemjs/plugin-babel/master/plugin-babel.js',
+        'systemjs-babel-build': 'https://rawgit.com/systemjs/plugin-babel/master/systemjs-babel-browser.js',
+        'transform-class-properties': 'https://unpkg.com/babel-plugin-transform-class-properties',
+        'transform-decorators': 'https://unpkg.com/babel-plugin-transform-decorators',
+        'preset-env': 'https://unpkg.com/babel-preset-env',
+        'stage-0': 'https://unpkg.com/babel-preset-stage-0',
+        'css': 'https://unpkg.com/systemjs-plugin-css',
+        'socket.io-client' : 'https://unpkg.com/socket.io-client/dist/socket.io.js',
+        'three': 'https://unpkg.com/three/build/three.min.js',
+        'THREE': 'https://unpkg.com/three/build/three.min.js',
+        'three-orbitcontrols': 'https://unpkg.com/three-orbitcontrols/OrbitControls.js',
+        'lodash': 'https://unpkg.com/lodash',
+        'turf': 'https://unpkg.com/turf/turf.min.js',
+        'tween': 'https://unpkg.com/tween.js/src/Tween.js',
+        'tooloud': 'https://unpkg.com/tooloud/dist/tooloud.min.js',
+        'three-effectcomposer-es6': 'https://unpkg.com/three-effectcomposer-es6@0.0.4/dist/index.js',
+        'wagner/': 'https://unpkg.com/@trakout/wagner/Wagner.js',
+        'wagner/base': 'https://unpkg.com/@trakout/wagner/Wagner.base.js',
+        'wagner/ShaderLoader': 'https://unpkg.com/@trakout/wagner/ShaderLoader.js'
+      },
       meta: {
         'THREE': {
           format: 'global',
@@ -73,26 +94,6 @@
             'THREE'
           ]
         }
-      },
-      map: {
-        'plugin-babel': 'https://rawgit.com/systemjs/plugin-babel/master/plugin-babel.js',
-        'systemjs-babel-build': 'https://rawgit.com/systemjs/plugin-babel/master/systemjs-babel-browser.js',
-        'transform-class-properties': 'https://unpkg.com/babel-plugin-transform-class-properties',
-        'transform-decorators': 'https://unpkg.com/babel-plugin-transform-decorators',
-        'preset-env': 'https://unpkg.com/babel-preset-env',
-        'css': 'https://unpkg.com/systemjs-plugin-css',
-        'socket.io-client' : 'https://unpkg.com/socket.io-client/dist/socket.io.js',
-        'three': 'https://unpkg.com/three/build/three.min.js',
-        'THREE': 'https://unpkg.com/three/build/three.min.js',
-        'three-orbitcontrols': 'https://unpkg.com/three-orbitcontrols/OrbitControls.js',
-        'lodash': 'https://unpkg.com/lodash',
-        'turf': 'https://unpkg.com/turf/turf.min.js',
-        'tween': 'https://unpkg.com/tween.js/src/Tween.js',
-        'tooloud': 'https://unpkg.com/tooloud/dist/tooloud.min.js',
-        'three-effectcomposer-es6': 'https://unpkg.com/three-effectcomposer-es6@0.0.4/dist/index.js',
-        'wagner/': 'https://unpkg.com/@trakout/wagner/Wagner.js',
-        'wagner/base': 'https://unpkg.com/@trakout/wagner/Wagner.base.js',
-        'wagner/ShaderLoader': 'https://unpkg.com/@trakout/wagner/ShaderLoader.js'
       },
       packages: {
         './src': {

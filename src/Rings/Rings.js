@@ -29,7 +29,22 @@ Ellipse.prototype.getPoint = function ( t ) {
   return new THREE.Vector3( this.xRadius * Math.cos( radians ), 0, this.yRadius * Math.sin( radians ) );
 };
 
+const wireframe = window.wireframe = function(container) {
+  if (container.children.length) {
+    return container.children.forEach(wireframe);
+  }
+  if (container.type === 'Mesh') {
+    container.material.wireframe = true;
+    container.material.needsUpdate = true;
+  }
+}
+
 export default class Rings {
+  static textures = {
+    bump: null,
+    roughness: null
+  };
+
   constructor (container, options) {
     this.options = Object.assign({}, {
       view: {
@@ -41,20 +56,28 @@ export default class Rings {
         height: window.innerHeight
       },
       radius: 42,
-      segments: 128
+      segments: 24
     }, options);
+
+    this.groups = ['lights', 'fixed', 'actors', 'cameras'].reduce(function (group, item) {
+      group[item] = new THREE.Group();
+      group[item].name = name;
+      return group;
+    }, {});
 
     this.updatees = [];
     this.container = container;
-    this.scene = new THREE.Scene();
+    this.scene = window.scene = new THREE.Scene();
     // this.scene.fog = new THREE.FogExp2( 0x000000, 0.015 );
     this.stage = new Stage(container);
     this.stats = this.stage.showStats();
     this.renderer = this.stage.createRenderer(this.options.view);
     // this.renderer.setClearColor(0x333F47, 1);
     // this.stage.helpers(this.scene);
-    this.camera = this.stage.createCamera(this.options.view);
-    
+    this.camera = this.stage.createCamera(this.options.view, { position: [0, 38, 8] });
+    this.camera.position.set(0, 38, 8);
+    this.camera.lookAt(this.scene.position);
+
 
     this.cameraGroup = new THREE.Group();
     this.cameraHelper = this.stage.createCameraHelper(this.options.view);
@@ -63,92 +86,41 @@ export default class Rings {
     
     this.updatees.push(this.cameraHelper.helper);
 
-    this.cameraGroup.add(this.cameraHelper.helper);
-    this.cameraGroup.add(this.cameraHelper.camera);
-    this.scene.add(this.cameraGroup);
+    this.groups.cameras.add(this.cameraHelper.helper);
+    this.groups.cameras.add(this.cameraHelper.camera);
+    this.groups.cameras.add(this.camera);
+    this.scene.add(this.groups.cameras);
 
-    // this.moveCamera(this.cameraHelper.camera, 4);
 
-    // position and point the camera to the center of the scene
-
-    // this.camera.position.set(0, 0, -12);
-    this.camera.position.set(0, 38, 8);
-    this.camera.lookAt(this.scene.position);
-    // this.scene.add(this.camera);
-    this.cameraGroup.add(this.camera);
-
+    /* Controls */
     this.controls = this.stage.setupControls();
 
-    this.drawSkyBox();
-    this.mainGroup = new THREE.Group();
-    // this.camContainer.add(this.camera);
-    this.drawFloor(this.mainGroup, this.options.radius * 4, this.options.radius * 4);
-    // this.drawTube(this.mainGroup, this.options.radius);
-    // this.animatePath(this.mainGroup, this.options.radius);
-    this.animateLight(this.mainGroup, this.options.radius);
-    this.placeObjects(this.mainGroup, this.options.radius);
-    // this.moveCamera(this.camera, 4);
+    /* Static objects */
+    this.groups.fixed.add(this.drawTube(this.options.radius));
+    this.groups.fixed.add(this.drawFloor(this.options.radius * 4, this.options.radius * 4));
+    this.scene.add(this.groups.fixed);
 
-    // this.mainGroup.add(this.camera);
-    // this.drawCurve(this.mainGroup);
-    // this.drawCurve3(this.mainGroup);
+
+    // this.drawSkyBox();
     
+    /* Lights */
+    this.groups.lights.add(this.placeLights());
+    this.scene.add(this.groups.lights);
 
+    /* Actors */
+    this.groups.actors.add(this.animateLight(this.options.radius));
+    this.groups.actors.add(this.placeObjects(this.options.radius, this.options.segments));
+    this.groups.actors.add(this.demo());
+    this.scene.add(this.groups.actors);
 
-    WAGNER.fragmentShadersPath = 'https://rawgit.com/spite/Wagner/master/fragment-shaders/';
-    WAGNER.vertexShadersPath = 'https://rawgit.com/spite/Wagner/master/vertex-shaders/';
-    /*
-    WAGNER.ZoomBlurPass = function() {
-      WAGNER.Pass.call( this );
-      WAGNER.log( 'ZoomBlurPass Pass constructor' );
-      this.loadShader( 'zoom-blur-fs.glsl' );
-      this.params.center = new THREE.Vector2( 0.5, 0.5 );
-      this.params.strength = 2;
-    };
-    WAGNER.ZoomBlurPass.prototype = Object.create( WAGNER.Pass.prototype );
-    WAGNER.ZoomBlurPass.prototype.run = function( c ) {
-      this.shader.uniforms.center.value.copy ( this.params.center );
-      this.shader.uniforms.strength.value = this.params.strength;
-      c.pass( this.shader );
-    };
-  */
-    this.composer = new WAGNER.Composer( this.renderer, { useRGBA: false } );
-    this.composer.setSize(this.options.view.width, this.options.view.height);
-    this.zoomBlurPass = new WAGNER.ZoomBlurPass();
-    this.zoomBlurPass.params.strength = .05;
-    this.bloomPass = new WAGNER.MultiPassBloomPass();
-    this.bloomPass.params.strength = .5;
-    this.dotScreenPass = new WAGNER.DotScreenPass();
-    this.dldVideoPass = new WAGNER.OldVideoPass();
-
-
-    // this.drawSimple();
-    // this.drawReflectingObjects();
-    // this.drawBox();
-    // this.scene.add(this.drawTiny());
-    // this.drawReflectingObjects();
-
-
-    // this.cameraGroup.rotation.z = THREE.Math.degToRad(45);
-
-    // this.addCameraLight(this.camera);
-    // this.moveCamera(this.camera, this.options.radius);
-
-    this.addCameraLight(this.cameraGroup);
+    this.addCameraLight(this.groups.cameras);
     // this.moveCamera(this.cameraHelper.camera, this.options.radius);
     this.moveCamera(this.camera, this.options.radius);
-    
-    this.scene.add(this.mainGroup);
-    this.scene.add(this.lights());
-    // this.mainGroup.rotation.x = THREE.Math.degToRad(90);
     container.appendChild(this.renderer.domElement);
   }
 
   addCameraLight (camera) {
-    //                      SpotLight(color, intensity, distance, angle, penumbra, decay)
     const light = new THREE.SpotLight(0xFFFFFF, 4, 100, Math.PI/6, 0.5, 2);
-    // light.position.copy(camera.children[0].position);
-    // light.target = camera.children[0].position;
     light.castShadow = true;
     light.name = 'frontera';
     // const helper = new THREE.SpotLightHelper(light);
@@ -157,7 +129,7 @@ export default class Rings {
     camera.add(light);
   }
 
-  animateLight (group, radius) {
+  animateLight (radius) {
     const { moveTo } = this;
     const color = 0x54BE68;
     const path = new Ellipse(radius, radius);
@@ -178,7 +150,7 @@ export default class Rings {
       .repeat(Infinity)
       .start();
 
-    group.add(light);
+    return light;
   }
 
   animatePath(group, radius) {
@@ -195,72 +167,6 @@ export default class Rings {
       .start();
 
     group.add(box);
-  }
-
-  drawCurve (group) {
-    const curve = new THREE.EllipseCurve(
-      0, 0,            // ax, aY
-      2, 2,            // xRadius, yRadius
-      0, 2 * Math.PI,  // aStartAngle, aEndAngle
-      false,           // aClockwise
-      0                // aRotation
-    );
-
-    const points = curve.getPoints(this.options.segments);
-    this.path = new THREE.Path(points);
-    
-    var torus = this.drawTiny();
-    group.add(torus);
-    const me = this;
-
-    me.move(torus, me.path, 0);
-    // me.move(torus, me.path, 0.5)
-    // me.move(torus, me.path, 1)
-
-    new TWEEN.default.Tween({position: 0})
-      .to({position: 1}, 10000 )
-      .onUpdate(function(progress) {
-        me.move(torus, me.path, this.position)
-      })
-      .repeat(Infinity)
-      .start();
-  }
-
-  getAngle (path, position) {
-    // get the 2Dtangent to the curve
-    const tangent = path.getTangent(position).normalize();
-    // change tangent to 3D
-    return -(Math.atan( tangent.x / tangent.y));
-  }
-
-  move (mesh, path, position) {
-    const getAngle = function (path, position) {
-      // get the 2Dtangent to the curve
-      const tangent = path.getTangent(position).normalize();
-      // change tangent to 3D
-      return -( Math.atan( tangent.x / tangent.y));
-    }
-    var up = new THREE.Vector3( 0, 0, 1);
-    // get the point at position
-    var point = path.getPointAt(position);
-    mesh.position.x = point.x;
-    mesh.position.y = point.y;
-
-    const angle = getAngle(path, position);
-    // console.log('angle: ', angle)
-    // set the quaternion
-    mesh.quaternion.setFromAxisAngle( up, angle );
-  }
-
-  moveOK (mesh, path, position) {
-    var up = new THREE.Vector3(0, 0, 1);
-    // get the point at position
-    var point = path.getPointAt(position);
-    mesh.position.x = point.x;
-    mesh.position.y = point.y;
-    var angle = this.getAngle(path, position);
-    // set the quaternion
-    mesh.quaternion.setFromAxisAngle( up, angle );
   }
 
   moveTo (shape, path, position, {x, y, z}) {
@@ -320,93 +226,39 @@ export default class Rings {
       .start();
   }
 
-  placeObjects(group, radius) {
-    const path = new Ellipse(radius, radius);
-    // const torus = this.drawTorus();
-    // this.moveTo(torus, path, 0.5);
-    
-    const points = path.getSpacedPoints(24);
-    // const shapes = points.map(point => {
-    //   const geometry = new THREE.SphereGeometry(0.2, 16, 16);
-    //   const material = new THREE.MeshBasicMaterial({ color: Math.random() * 0xffffff })
-    //   const mesh = new THREE.Mesh(geometry, material);
-    //   mesh.position.set(point.x, point.y, point.z);
-    //   return mesh;
-    // });
 
+  makeBump () {
+    if(!this.mapHeight) {
+      const mapHeight = this.mapHeight = new THREE.CanvasTexture(noise(512, 512, 75));
+      mapHeight.anisotropy = 2;
+      mapHeight.repeat.set( 24, 24 );
+      // mapHeight.offset.set( 0.001, 0.001 );
+      mapHeight.wrapS = mapHeight.wrapT = THREE.RepeatWrapping;
+      mapHeight.format = THREE.RGBFormat;
+      return this.mapHeight;
+    } else {
+      return this.mapHeight;
+    }
+  }
+  
+  placeObjects(radius, segments = 24) {
+    const group = new THREE.Group();
+    group.name = 'rings';
+    const path = new Ellipse(radius, radius);
+    const points = path.getSpacedPoints(segments);
     const shapes = points.map((point, index) => {
-      const torus = this.drawTorus();
-      this.moveTo(torus, path, (1 / points.length) * index, {x:0,y:0,z:1});
-      return torus;
+      const ring = this.ring();
+      this.moveTo(ring, path, (1 / points.length) * index, {x:0,y:0,z:1});
+      return ring;
     });
 
     for(let i = 0; i < shapes.length; i++) {
       group.add(shapes[i]);
     }
-
-    // group.add(torus);
+    return group;
   }
 
-  makeElipis (group, radius) {
-    const matrix = new THREE.Matrix4();
-    const up = new THREE.Vector3( 0, 0, 1 );
-    const axis = new THREE.Vector3( );
-    const path = new Ellipse(radius, radius);
-    // const torus = this.drawTorus();
-    const torus = this.drawTorus();
-
-    function move (t) {
-      // set the marker position
-      const pt = path.getPoint( t );
-      // set the marker position
-      torus.position.set( pt.x, pt.y, pt.z );
-      // get the tangent to the curve
-      const tangent = path.getTangent( t ).normalize();
-      // calculate the axis to rotate around
-      axis.crossVectors( up, tangent ).normalize();
-      // calcluate the angle between the up vector and the tangent
-      const radians = Math.acos( up.dot( tangent ) );
-      // set the quaternion
-      torus.quaternion.setFromAxisAngle( axis, radians );
-    };
-
-    new TWEEN.default.Tween({position: 0})
-      .to({position: 1}, 10000)
-      .onUpdate(function(progress) {
-        move(this.position);
-      })
-      .repeat(Infinity)
-      .start();
-
-    group.add(torus);
-  }
-
-  drawCurve2 () {
-    var curve = new THREE.EllipseCurve(
-      0,  0,            // ax, aY
-      2, 2,           // xRadius, yRadius
-      0,  2 * Math.PI,  // aStartAngle, aEndAngle
-      false,            // aClockwise
-      0                 // aRotation
-    );
-
-    var path = new THREE.Path( curve.getPoints( 50 ) );
-    var geometry = path.createPointsGeometry( 50 );
-    const material = new THREE.LineBasicMaterial({ 
-      linewidth: 40,
-      color: 0xFF0000,
-      blending: THREE.AdditiveBlending, 
-      transparent: true,
-      opacity: 1
-    });
-
-    // Create the final object to add to the scene
-    var ellipse = new THREE.Line( geometry, material );
-    ellipse.rotation.x = de2ra(90);
-    this.scene.add(ellipse);
-  }
-
-  drawTube (group, radius) {
+  drawTube (radius) {
     const path = new Ellipse(radius, radius);
     // params
     const pathSegments = this.options.segments;
@@ -415,109 +267,16 @@ export default class Rings {
     const closed = true;
 
     const geometry = new THREE.TubeBufferGeometry( path, pathSegments, tubeRadius, radiusSegments, closed );
-    // material
-    const material = new THREE.MeshPhongMaterial({
-      color: 0xFFFF00, 
-    });    
-    // mesh
-    const mesh = new THREE.Mesh( geometry, material );
-    group.add(mesh);
-  }
-
-  drawCurve3 (group) {
-    const curve = new THREE.EllipseCurve(
-      0,  0,            // ax, aY
-      2, 2,             // xRadius, yRadius
-      0,  2 * Math.PI,  // aStartAngle, aEndAngle
-      false,            // aClockwise
-      0                 // aRotation
-    );
-    // Ellipse class, which extends the virtual base class Curve
-    function Ellipse( xRadius, yRadius ) {
-      THREE.Curve.call( this );
-      // add the desired properties
-      this.xRadius = xRadius;
-      this.yRadius = yRadius;
-    }
-    Ellipse.prototype = Object.create( THREE.Curve.prototype );
-    Ellipse.prototype.constructor = Ellipse;
-    // define the getPoint function for the subClass
-    Ellipse.prototype.getPoint = function ( t ) {
-      var radians = 2 * Math.PI * t;
-      return new THREE.Vector3( this.xRadius * Math.cos( radians ),
-        this.yRadius * Math.sin( radians ),
-        0 );
-
-    };
-    const path = new Ellipse( 2.025, 2.025 );
-
-    // params
-    const pathSegments = this.options.segments;
-    const tubeRadius = 0.05;
-    const radiusSegments = 16;
-    const closed = true;
-
-    const geometry = new THREE.TubeBufferGeometry( path, pathSegments, tubeRadius, radiusSegments, closed );
-    // material
     const material = new THREE.MeshPhongMaterial({
       color: 0xFFFF00, 
     });
-    
-    // mesh
+
     const mesh = new THREE.Mesh( geometry, material );
-    group.add(mesh);
-    /*
-    const path = new THREE.Path( curve.getPoints( 120 ) );
-    const geometry = new THREE.TubeBufferGeometry(path, 20, 0.2, 8, true);
-    const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-    const mesh = new THREE.Mesh( geometry, material );
-    group.add( mesh );
-    */
+    mesh.name = 'tube';
+    return mesh;
   }
 
-  drawCurve4 (group) {
-    const curve = new THREE.EllipseCurve(
-      0,  0,            // ax, aY
-      2, 2,             // xRadius, yRadius
-      0,  2 * Math.PI,  // aStartAngle, aEndAngle
-      false,            // aClockwise
-      0                 // aRotation
-    );
-
-    const points = curve.getPoints( 120 )
-    const geometry = new THREE.Geometry();
-    
-    for (let i = 0; i < points.length; i++) {
-      const vector = new THREE.Vector3( points[i].x, points[i].y, points[i].z || 0 );
-      geometry.vertices.push(vector);
-    }
-
-    const loader = new THREE.TextureLoader();
-    const material = new THREE.LineBasicMaterial({ 
-      linewidth: 40,
-      color: 0xFFFFFF,
-      blending: THREE.AdditiveBlending, 
-      transparent: true,
-      opacity: 1
-    });
-
-    const line = new THREE.Line(geometry, material);
-    line.geometry.dynamic = true;
-    // line.rotation.x = de2ra(90);
-    group.add(line);
-  }
-
-  drawTorus () {
-    // const geometry = new THREE.BoxGeometry( 0.5, 0.5, 0.5 );
-    const geometry = new THREE.TorusGeometry(2, 0.5, 6, 48)
-    // const material = new THREE.MeshPhongMaterial({
-    //   // color: Math.random() * 0xffffff
-    //   color: 0xffffff,
-    //   shading: THREE.FlatShading,
-    //   side: THREE.DoubleSide
-    // });
-    // const material = new THREE.MeshPhongMaterial({ color: 0x11111f, side: THREE.DoubleSide, opacity: .95, transparent: true })
-    
+  getDonutMaterial () {    
     const newBump = this.makeBump().clone();
     newBump.repeat.set( Math.random() * 124, Math.random() * 124 );
     newBump.offset.set( Math.random() * 10, Math.random() * 10);
@@ -540,74 +299,20 @@ export default class Rings {
       bumpScale: 0.01
     });
 
-    const mesh = new THREE.Mesh(geometry, material);
+    return material;
+  }
+
+  ring () {
+    // const geometry = new THREE.BoxGeometry( 0.5, 0.5, 0.5 );
+    const geometry = new THREE.TorusGeometry(2, 0.5, 6, 48)
+    
+    const mesh = new THREE.Mesh(geometry, this.getDonutMaterial());
+    mesh.name = 'donut';
     mesh.position.set(0, 0, 0);
     mesh.rotation.set(0, 0, 0);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
     return mesh;
-  }
-
-  drawTiny (width, height, depth) {
-    const geometry = new THREE.BoxGeometry(width, height, depth);
-    const loader = new THREE.TextureLoader();
-    const texture = loader.load( '/images/uv.jpg' );
-    const material    = new THREE.MeshPhongMaterial({
-      color: 0xFFFFFF,
-      map: texture
-    });
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;    
-    return mesh;
-  }
-
-  drawReflectingObjects () {
-    // Object 1: rectangle
-
-    // create additional camera
-    this.mCubeCamera = new THREE.CubeCamera(0.1, 1000, 1000); // near, far, cubeResolution
-    this.scene.add(this.mCubeCamera);
-
-    // create mirror material and mesh
-    const geometry = new THREE.SphereGeometry( 2, 32, 32 );
-    const material  = new THREE.MeshBasicMaterial({
-      color: 'gold',
-      envMap: this.mCubeCamera.renderTarget,
-      side: THREE.DoubleSide
-    });
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(0, 0, 0);
-    mesh.rotation.set(0, 0, 0);
-    mesh.scale.set(1, 1, 1);
-    // mesh.doubleSided = true;
-    // mesh.castShadow = true;
-    this.scene.add(mesh);
-    /*
-    var mirrorCubeMaterial = new THREE.MeshBasicMaterial({
-      envMap: this.mCubeCamera.renderTarget,
-      side: THREE.DoubleSide
-    });
-    this.mCube = new THREE.Mesh(new THREE.CubeGeometry(100, 100, 5, 1, 1, 1), mirrorCubeMaterial);
-    this.mCube.position.set(1, 0, 1);
-    this.mCubeCamera.position.copy(this.mCube.position);
-    this.mCubeCamera.lookAt(new THREE.Vector3(0, 0, 0));
-    this.scene.add(this.mCube);
-    */
-  }
-
-  makeBump () {
-    if(!this.mapHeight) {
-      const mapHeight = this.mapHeight = new THREE.CanvasTexture(noise(512, 512, 75));
-      mapHeight.anisotropy = 2;
-      mapHeight.repeat.set( 24, 24 );
-      // mapHeight.offset.set( 0.001, 0.001 );
-      mapHeight.wrapS = mapHeight.wrapT = THREE.RepeatWrapping;
-      mapHeight.format = THREE.RGBFormat;
-      return this.mapHeight;
-    } else {
-      return this.mapHeight;
-    }
   }
 
   makeRoughnessMap () {
@@ -638,17 +343,27 @@ export default class Rings {
     }
   }
 
-  drawFloor(parent, width, height) {
+  demo () {
+    const geometry = new THREE.BoxGeometry( 20, 20, 20 );
+    const material = new THREE.MeshPhongMaterial({color: 0xFFFFFF})
+    const cube = new THREE.Mesh(geometry, material);
+    cube.castShadow = true;
+    cube.receiveShadow = true;
+    return cube;
+  }
+
+  drawFloor(width, height) {
     const geometry = new THREE.PlaneGeometry(width, height);
-    // const material = new THREE.MeshPhongMaterial({ 
-    //   color: 0xFFFFFF,
-    //   side: THREE.DoubleSide,
-    //   specular: 0x009900, 
-    //   shininess: 1, 
-    //   shading: THREE.FlatShading,
-    //   bumpMap: this.makeBump(),
-    //   bumpScale: 1,
-    // });
+    const materialX = new THREE.MeshPhongMaterial({ 
+      color: 0xFFFFFF,
+      side: THREE.DoubleSide,
+      specular: 0x009900, 
+      shininess: 1, 
+      shading: THREE.FlatShading,
+      bumpScale: 1,
+    });
+
+    console.log(this.makeBump)
 
     const material = new THREE.MeshStandardMaterial({ 
       color: 0x11111f, 
@@ -664,12 +379,13 @@ export default class Rings {
     });
 
     const mesh = new THREE.Mesh(geometry, material);
+    mesh.name = 'floor';
     mesh.position.set(0, -2.5, 0);
     mesh.rotation.set(0, 0, 0);
     mesh.rotation.x = de2ra(90);
-    // mesh.castShadow = true;
     mesh.receiveShadow = true;
-    parent.add(mesh);
+    
+    return mesh;
   }
  
   drawSkyBox() {
@@ -688,48 +404,45 @@ export default class Rings {
     this.scene.background = this.reflectionCube;
   }
 
-  lights () {
+  addHelpers () {
+
+  }
+  placeLights (container) {
     const options = [{
+      type: 'DirectionalLight',
       color: 0xFF0000,
-      intensity: 1,
-      position: {x: 60, y: 30, z: 90},
-      name: 'Back light'
+      intensity: 10,
+      position: [60, 30, 90],
+      castShadow: true
     }, {
-      color: 'blue',
+      type: 'DirectionalLight',
+      color: 0x0000FF,
       intensity: 1,
-      position: {x: -120, y: 30, z: 0},
-      name: 'Key light'
+      position: [-120, 30, 0],
+      castShadow: true
+    }, {
+      type: 'SpotLight',
+      color: 0xFFFFFF,
+      intensity: 1.5,
+      position: [3, 40, 3],
+      castShadow: true,
     }];
 
-    // const lights = options.map(option => {
-    //   const { color, intensity, position, name } = option;
-    //   const light  = new THREE.DirectionalLight(color, intensity);
-    //   light.position.set(position.x, position.y, position.z);
-    //   light.name = name;
-    //   return light;
-    // })
-    // .reduce((a, light) => {
-    //   a.add(light);
-    //   return a;
-    // }, new THREE.Group());
-
-    const lights = new THREE.Group();
-
-    options.forEach(option => {
-      const { color, intensity, position, name } = option;
-      const light  = new THREE.DirectionalLight(color, intensity);
-      light.position.set(position.x, position.y, position.z);
-      light.castShadow = true;
+    const lights = options.map(function (option, index) {
+      const { color, intensity, position, name, type, castShadow } = option;
+      let light = new THREE[type](color);
+      light.position.fromArray(position);
+      light.intensity = intensity;
+      light.castShadow = castShadow;
       light.name = name;
-      lights.add(light);
-    });
+      return light;
+    })
+    .reduce((group, light) => {
+      group.add(light);
+      return group;
+    }, new THREE.Group());
 
-    const spotLight = new THREE.SpotLight( 0xffffff );
-    spotLight.position.set( 3, 40, 3 );
-    spotLight.castShadow = true;
-    spotLight.intensity = 0.5;
-    lights.add(spotLight);
-
+    /* attach helpers */
     lights.children.forEach(light => {
       const helper = new THREE[`${light.type}Helper`](light);
       this.updatees.push(helper);
@@ -743,18 +456,11 @@ export default class Rings {
     const { scene, camera, renderer, stats, controls, cameraHelper, updatees, composer, zoomBlurPass, bloomPass, dotScreenPass } = this;
     function render(time) {
       TWEEN.default.update(time);
-      // renderer.render(scene, camera);
-      composer.reset();
-      composer.render( scene, camera );
-      // composer.pass(zoomBlurPass);
-      composer.pass(bloomPass);
-      composer.pass(dotScreenPass);
-      composer.toScreen();
-
+      renderer.render(scene, camera);
       controls.update();
-      updatees.forEach(helper => {
-        // return helper.update();
-      });
+      // updatees.forEach(helper => {
+      //   return helper.update();
+      // });
     }
 
     function loop(time) {
