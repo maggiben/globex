@@ -1,2 +1,4 @@
 .DS_Store
-server/node_modules
+server/node_modulestmp/
+tmp/
+**/node_modules/

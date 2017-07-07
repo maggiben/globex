@@ -43,19 +43,26 @@
       // defaultExtension: 'js',
       transpiler: 'plugin-babel',
       map: {
+        /* Babel */
         'plugin-babel': 'https://rawgit.com/systemjs/plugin-babel/master/plugin-babel.js',
         'systemjs-babel-build': 'https://rawgit.com/systemjs/plugin-babel/master/systemjs-babel-browser.js',
         'transform-class-properties': 'https://unpkg.com/babel-plugin-transform-class-properties',
         'transform-decorators': 'https://unpkg.com/babel-plugin-transform-decorators',
         'preset-env': 'https://unpkg.com/babel-preset-env',
         'stage-0': 'https://unpkg.com/babel-preset-stage-0',
+        
+        /* Loaders */
         'css': 'https://unpkg.com/systemjs-plugin-css',
+        'json': 'https://unpkg.com/systemjs-plugin-json',
+
+
         'socket.io-client' : 'https://unpkg.com/socket.io-client/dist/socket.io.js',
         'three': 'https://unpkg.com/three/build/three.min.js',
         'THREE': 'https://unpkg.com/three/build/three.min.js',
         'three-orbitcontrols': 'https://unpkg.com/three-orbitcontrols/OrbitControls.js',
         'lodash': 'https://unpkg.com/lodash',
         'chance': 'https://unpkg.com/chance',
+        'debug': 'https://unpkg.com/debug',
         'turf': 'https://unpkg.com/turf/turf.min.js',
         'tween': 'https://unpkg.com/tween.js/src/Tween.js',
         'tooloud': 'https://unpkg.com/tooloud/dist/tooloud.min.js',
@@ -89,7 +96,8 @@
         './src': {
           defaultExtension: 'js',
           meta: {
-            '*.css': { loader: 'css' }
+            '*.css': { loader: 'css' },
+            '*.json': { loader: 'json' }
           },
           map: {
             'timesync': 'https://unpkg.com/timesync/dist/timesync.min.js',

@@ -4,46 +4,18 @@ import 'wagner/';
 import 'wagner/base';
 import * as TWEEN from 'tween';
 import * as OrbitControls from 'three-orbitcontrols';
+// import * as Debug from 'debug';
 import { noise, perlin, worley } from '../common/Textures';
 import Stage from '../common/Stage';
 import throttle from 'lodash/throttle';
+import Ellipse from '../common/Ellipse';
+import { simplify } from '../common/Utils';
+import Algebra from '../common/Algebra';
 
-const de2ra = window.de2ra = function(degree) { 
-  return degree * (Math.PI/180);
-};
-const ra2deg = window.ra2deg = function(radians) { 
-  return radians * (180 / Math.PI);
-};
-
-function Ellipse ( xRadius, yRadius ) {
-  THREE.Curve.call( this );
-  // add the desired properties
-  this.xRadius = xRadius;
-  this.yRadius = yRadius;
-}
-Ellipse.prototype = Object.create( THREE.Curve.prototype );
-Ellipse.prototype.constructor = Ellipse;
-// define the getPoint function for the subClass
-Ellipse.prototype.getPoint = function ( t ) {
-  const radians = 2 * Math.PI * t;
-  return new THREE.Vector3( this.xRadius * Math.cos( radians ), 0, this.yRadius * Math.sin( radians ) );
-};
-
-const wireframe = window.wireframe = function(container) {
-  if (container.children.length) {
-    return container.children.forEach(wireframe);
-  }
-  if (container.type === 'Mesh') {
-    container.material.wireframe = true;
-    container.material.needsUpdate = true;
-  }
-}
+import Scenario from './Scenario.json';
+import Lights from './Lights';
 
 export default class Rings {
-  static textures = {
-    bump: null,
-    roughness: null
-  };
 
   constructor (container, options) {
     this.options = Object.assign({}, {
@@ -61,7 +33,7 @@ export default class Rings {
 
     this.groups = ['lights', 'fixed', 'actors', 'cameras'].reduce(function (group, item) {
       group[item] = new THREE.Group();
-      group[item].name = name;
+      group[item].name = item;
       return group;
     }, {});
 
@@ -113,21 +85,24 @@ export default class Rings {
     // this.drawSkyBox();
     
     /* Lights */
-    this.groups.lights.add(this.placeLights());
-    this.scene.add(this.groups.lights);
+    const lights = new Lights(Scenario.lights, { helpers: true });
+    // this.groups.lights.add(this.placeLights());
+    this.scene.add(lights);
+    // console.log(lights.showHelpers())
+    // this.groups.lights.add(new Lights)
 
     /* Actors */
     // this.groups.actors.add(this.animateLight(this.options.radius));
     this.groups.actors.add(this.placeObjects(this.options.radius, this.options.segments));
     
     this.scene.add(this.groups.actors);
-    // wireframe(this.groups.actors);
+    simplify(this.groups.actors);
     this.groups.actors.add(this.demo());
     // this.groups.actors.add(this.drawTiny(5,5,5, [10,2.5,0]));
 
 
     // this.moveCamera(this.cameraHelper.camera, this.options.radius);
-    this.moveCamera(this.camera, this.options.radius);
+    // this.moveCamera(this.camera, this.options.radius);
     container.appendChild(this.renderer.domElement);
   }
 
@@ -382,7 +357,7 @@ export default class Rings {
     mesh.name = 'floor';
     mesh.position.set(0, -2.5, 0);
     mesh.rotation.set(0, 0, 0);
-    mesh.rotation.x = de2ra(90);
+    mesh.rotation.x = Algebra.de2ra(90);
     mesh.receiveShadow = true;
 
     return mesh;
@@ -401,11 +376,13 @@ export default class Rings {
       intensity: 1,
       position: [-120, 30, 0],
       // castShadow: true
+      name: 'blueLight'
     }, {
       type: 'SpotLight',
       color: 0xFFFFFF,
       intensity: 1,
       position: [3, 40, 3],
+      name: 'primary'
       // castShadow: true,
     }];
 
@@ -423,12 +400,24 @@ export default class Rings {
       return group;
     }, new THREE.Group());
 
+    var l = lights.children[2];
+    console.log(l);
+    new TWEEN.default.Tween({altitude: 40})
+      .delay(5000)
+      .to({altitude: 0}, 10000)
+      .onUpdate(function(progress) {
+        // moveTo(box, path, this.position, {x:0,y:0,z:1});
+        const {x, y, z} = l.position.clone()
+        l.position.set(x, this.altitude, z)
+      })
+      .start();
+
     /* attach helpers */
-    // lights.children.forEach(light => {
-    //   const helper = new THREE[`${light.type}Helper`](light);
-    //   this.updatees.push(helper);
-    //   lights.add(helper);
-    // });
+    lights.children.forEach(light => {
+      const helper = new THREE[`${light.type}Helper`](light);
+      // this.updatees.push(helper);
+      lights.add(helper);
+    });
 
     return lights;
   }
@@ -528,7 +517,7 @@ export default class Rings {
   }
 }
 
-
+window.Rings = Rings
 
 
 

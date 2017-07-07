@@ -3,8 +3,21 @@ import * as TWEEN from 'tween';
 import * as THREE from 'three';
 import * as OrbitControls from 'three-orbitcontrols';
 
-export default class Stage {
+export class View {
+  static screen = {
+    fullWidth: window.innerWidth,
+    fullHeight: window.innerHeight,
+    x: 0,
+    y: 0,
+    width: window.innerWidth,
+    height: window.innerHeight
+  }
+};
+
+export default class Stage extends View {
+
   constructor (container) {
+    super()
     /*
     window.innerWidth, window.innerHeight
     this.scene = new THREE.Scene();
