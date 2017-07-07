@@ -22,11 +22,11 @@ const effectController  = {
   mieCoefficient: 0.005,
   mieDirectionalG: 0.8,
   luminance: 1,
-  inclination: 0.49, // elevation / inclination
+  inclination: 0.45, // elevation / inclination
   azimuth: 0.25, // Facing front,
 };
 
-const distance = 80;
+const distance = 100;
 
 const SkyShader = {
   uniforms: {

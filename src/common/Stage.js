@@ -46,7 +46,7 @@ export default class Stage extends View {
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(width, height);
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.BasicShadowMap; // default THREE.PCFShadowMap
+    renderer.shadowMap.type = THREE.PCFShadowMap; // default THREE.PCFSoftShadowMap low: BasicShadowMap
     this.renderer = renderer;
     return renderer;
   }

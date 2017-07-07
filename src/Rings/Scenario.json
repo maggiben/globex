@@ -43,11 +43,11 @@
     {
       "type": "SpotLight",
       "color": 16777215,
-      "intensity": 22,
+      "intensity": 12,
       "position": [3, 100, 3],
       "castShadow": true,
       "distance": 500,
-      "angle": 0.8,
+      "angle": 1.0471975511965976,
       "penumbra": 0.5,
       "decay": 0.1,
       "name": "sun"

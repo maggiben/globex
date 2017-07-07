@@ -41,7 +41,7 @@ export const tube = function (radius, segments = 25) {
 
   const geometry = new THREE.TubeBufferGeometry(path, pathSegments, tubeRadius, radiusSegments, closed);
   const material = new THREE.MeshPhongMaterial({
-    color: 0xFFFF00, 
+    color: 0xFFFF00,
   });
 
   const mesh = new THREE.Mesh(geometry, material);

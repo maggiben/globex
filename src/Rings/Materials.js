@@ -11,10 +11,12 @@ const glossMaterial = function () {
     color: 0xFFFFFF,
     side: THREE.DoubleSide,
     specular: 0x111111,
-    shininess: 200,
+    shininess: 100,
     shading: THREE.FlatShading,
     map: texture,
-    specularMap: texture
+    specularMap: texture,
+    bumpMap: texture,
+    bumpScale: 0.01
   });
 
   material.name = 'gloss';
