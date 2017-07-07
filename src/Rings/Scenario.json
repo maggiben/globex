@@ -1,5 +1,5 @@
 {
-  "lights": [
+  "lightsX": [
     {
       "type": "DirectionalLight",
       "color": 16711680,
@@ -25,6 +25,31 @@
       "color": 16777215,
       "intensity": 25,
       "position": [3, 100, 3],
+      "name": "sun"
+    },
+    {
+      "type": "SpotLight",
+      "color": 65280,
+      "intensity": 4,
+      "distance": 100,
+      "angle": 0.5235987755982988,
+      "penumbra": 0.5,
+      "decay": 2,
+      "position": [0, 0, 0],
+      "name": "frontera"
+    }
+  ],
+  "lights": [
+    {
+      "type": "SpotLight",
+      "color": 16777215,
+      "intensity": 22,
+      "position": [3, 100, 3],
+      "castShadow": true,
+      "distance": 500,
+      "angle": 0.8,
+      "penumbra": 0.5,
+      "decay": 0.1,
       "name": "sun"
     },
     {

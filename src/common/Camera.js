@@ -7,7 +7,7 @@ import GroupEx from '../common/GroupEx';
 const VALID_LIGHT_PROPERTIES = ['fov', 'aspect', 'near', 'far'];
 
 export const createPerspectiveCamera = function ({fullWidth, fullHeight, x, y, width, height}) {
-  const camera = new THREE.PerspectiveCamera(80, width / height, 1, 2000000);
+  const camera = new THREE.PerspectiveCamera(80, width / height, 1, 10000);
   camera.setViewOffset(fullWidth, fullHeight, x, y, width, height);
   camera.position.z = 1400;
   camera.lookAt(new THREE.Vector3(0, 0, 0));

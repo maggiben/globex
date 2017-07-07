@@ -80,7 +80,7 @@ export default class Stage extends View {
     const helper = new THREE.CameraHelper(camera);
     return { camera, helper };
   }
-  
+
 
   helpers (scene) {
     const helpers = new THREE.Group();

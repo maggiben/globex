@@ -85,7 +85,16 @@ export default class Rings {
     this.groups.actors.add(this.demo());
 
     const sun = this.groups.lights.getObjectByName('sun');
+    sun.shadow.mapSize.width = 4096;
+    sun.shadow.mapSize.height = 4096;
+
+    // sun.shadow.camera.near = 1;
+    // sun.shadow.camera.far = 100;
+    // sun.shadow.camera.fov = 50;
+
     sun.position.copy(sky.getSunPosition());
+    sun.target = this.groups.actors.getObjectByName('demo');
+
     // Materials.simplify(this.groups.actors);
 
 

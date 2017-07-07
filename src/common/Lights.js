@@ -9,8 +9,8 @@ export default class Lights extends GroupEx {
     super('lights')
     const lights = this.createLights(template);
     this.add(lights);
-    const helpers = this.createHelpers(lights);
-    this.add(helpers);
+    // const helpers = this.createHelpers(lights);
+    // this.add(helpers);
   }
 
   /* attach helpers */
@@ -19,8 +19,10 @@ export default class Lights extends GroupEx {
       const type = light.type.concat('Helper');
       if (type in THREE) {
         const helper = new THREE[type](light);
-        helpers.add(helper);
-        return helpers;
+        if (light.name) {
+          helper.name = light.name.concat('-helper');
+        }
+        return helpers.add(helper);
       }
     }, new GroupEx('helpers'));
   }
