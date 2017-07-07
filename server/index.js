@@ -9,8 +9,9 @@ import path from 'path';
 import socketio from 'socket.io';
 import { api } from './routes';
 import { ScreenSocket } from './services';
+import { debug } from 'debug';
 
-const debug = require('debug')('globex:main');
+const Info = debug('globex:main:info');
 const app = express();
 // App middleware
 app.use(bodyParser.json()); // for parsing application/json
@@ -21,42 +22,11 @@ app.use(cors()); // for parsing application/json
 // App Rutes
 app.use('/api', api);
 
-const eventos = {
-  trigger: Date.now() + 2000
-};
-
-const handleSocket = function (io) {
-  setInterval(function () {
-    debug('next animation');
-    eventos.trigger = Date.now() + 2000;
-    io.sockets.emit('eventos', eventos);
-  }, 5000);
-
-  io.on('connection', function (socket) {
-    debug('client connected', socket.id);
-
-    socket.on('move', function ({ position, rotation }) {
-      debug(position, rotation);
-      io.sockets.emit('move:camera', { position, rotation });
-    });
-
-    socket.on('timesync', function (data) {
-      socket.emit('timesync', {
-        id: data && 'id' in data ? data.id : null,
-        result: Date.now(),
-        trigger: eventos.trigger
-      });
-    });
-  });
-}
-
 export const server = app.listen(config.service.port, function () {
   const host = server.address().address
   const port = server.address().port
   // const io = socketio.listen(server);
   // handleSocket(io);
   const screenSocket = new ScreenSocket(server);
-  debug(`server listening at ${host}:${port}'`)
+  Info(`server listening at ${host}:${port}'`)
 });
-
-// export const socket = new ScreenSocket(server);

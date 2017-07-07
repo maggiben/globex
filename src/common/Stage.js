@@ -11,21 +11,29 @@ export class View {
     y: 0,
     width: window.innerWidth,
     height: window.innerHeight
-  }
+  };
+
+  static createCamera ({fullWidth, fullHeight, x, y, width, height}) {
+    const camera = new THREE.PerspectiveCamera(80, width / height, 1, 5000);
+    camera.setViewOffset(fullWidth, fullHeight, x, y, width, height);
+    camera.position.z = 1400;
+    camera.lookAt(new THREE.Vector3(0, 0, 0));
+    return camera;
+  };
+
+  static createCameraHelper ({fullWidth, fullHeight, x, y, width, height}) {
+    const camera = new THREE.PerspectiveCamera(50, width / height, 1, 5000);
+    camera.setViewOffset(fullWidth, fullHeight, x, y, width, height);
+    const helper = new THREE.CameraHelper(camera);
+    return helper;
+  };
+
 };
 
 export default class Stage extends View {
 
   constructor (container) {
     super()
-    /*
-    window.innerWidth, window.innerHeight
-    this.scene = new THREE.Scene();
-    this.renderer = this.createRenderer(container);
-    this.camera = this.createCamera();
-
-    this.setupControls();
-    */
   }
 
   createRenderer ({width, height}) {
@@ -50,6 +58,12 @@ export default class Stage extends View {
     return stats;
   }
 
+  createCamera (...args) {
+    this.camera = View.createCamera(...args);
+    return this.camera;
+  }
+
+  /*
   createCamera ({fullWidth, fullHeight, x, y, width, height}) {
     const camera = new THREE.PerspectiveCamera(80, width / height, 1, 5000);
     camera.setViewOffset(fullWidth, fullHeight, x, y, width, height);
@@ -58,6 +72,7 @@ export default class Stage extends View {
     this.camera = camera;
     return camera;
   }
+  */
 
   createCameraHelper ({fullWidth, fullHeight, x, y, width, height}) {
     const camera = new THREE.PerspectiveCamera(50, width / height, 1, 5000);
@@ -65,6 +80,7 @@ export default class Stage extends View {
     const helper = new THREE.CameraHelper(camera);
     return { camera, helper };
   }
+  
 
   helpers (scene) {
     const helpers = new THREE.Group();

@@ -14,7 +14,7 @@ const createCanvas = function (width, height) {
 } 
 
 /* Noise fx */
-export const noise = function (width, height, amount = 100) {
+const noise = function (width, height, amount = 100) {
   const { canvas, context, imageData } = createCanvas(width, height);
   for(let x = 0; x < width; x++ ){
     for(let y = 0; y < height; y++ ){
@@ -26,10 +26,8 @@ export const noise = function (width, height, amount = 100) {
 }
 
 
-export const perlin = function (width, height) {
+const perlin = function (width, height) {
   const { canvas, context, imageData } = createCanvas(width, height);
-  // seed your noise
-  // this is optional
   tooloud.default.Perlin.setSeed(Math.floor(Math.random() * 10000));
 
   for (let i = 0; i < width; i++) {
@@ -57,26 +55,43 @@ export const perlin = function (width, height) {
   return canvas;
 }
 
-export const worley = function (width, height, amount = 100) {
+const worley = function (width, height, amount = 100) {
   const { canvas, context, imageData } = createCanvas(width, height);
   tooloud.default.Worley.setSeed(Math.floor(Math.random() * 10000));
+  
   for(let x = 0; x < width; x++ ){
     for(let y = 0; y < height; y++ ){
-      var index = (x + y * width) * 4;
+      let index = (x + y * width) * 4;
       // In one go:
-      var x = 15 * (x / width), 
+      let x = 15 * (x / width), 
           y = 5 * (y / height),         // You can use different scale values for each coordinate
           z = 0;
 
-      var n = tooloud.default.Worley.Euclidean(x, y, z);
-        imageData.data[index + 0] = Math.floor(255 * n[0]);
-        imageData.data[index + 1] = Math.floor(255 * n[0]);
-        imageData.data[index + 2] = Math.floor(255 * n[0]);
-        imageData.data[index + 3] = 255;
+      let n = tooloud.default.Worley.Euclidean(x, y, z);
+      imageData.data[index + 0] = Math.floor(255 * n[0]);
+      imageData.data[index + 1] = Math.floor(255 * n[0]);
+      imageData.data[index + 2] = Math.floor(255 * n[0]);
+      imageData.data[index + 3] = 255;
     }
   }
 
   context.putImageData(imageData, 0, 0);
   return canvas;
 }
+
+export const generators = {
+  noise,
+  perlin,
+  worley
+};
+
+export const proceduralTexture = function (generator, ...options) {
+  const texture = new THREE.CanvasTexture(generators[generator](...options));
+  texture.anisotropy = 2;
+  texture.repeat.set(3, 3);
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+  texture.format = THREE.RGBFormat;
+  return texture;
+}
+
 

@@ -5,8 +5,10 @@ import { createClient } from 'redis';
 import adapter from 'socket.io-redis';
 import { EventEmitter } from 'events';
 import config from 'config';
+import { debug } from 'debug';
 
-const debug = require('debug')('globex:socketio');
+const Info = debug('globex:socket:info');
+const Exception = debug('globex:socket:exception');
 
 const getRedis = function () {
   const pubClient = createClient(config.redis.port, config.redis.hostname);
@@ -26,21 +28,21 @@ class SocketClient {
   }
 
   disconnect = reason => {
-    debug('disconnect:', this.socket.id)
+    Info('disconnect:', this.socket.id)
   }
 
   echo = message => {
-    debug('echo:', message);
+    Info('echo:', message);
     this.socket.emit('echo', message);
   }
 
   ping = () => {
-    debug('ping');
+    Info('ping');
     this.socket.emit('pong', version);
   }
 
   timesync = data => {
-    debug('timesync', this.socket.id);
+    Info('timesync', this.socket.id);
     this.socket.emit('timesync', {
       id: data && 'id' in data ? data.id : null,
       result: Date.now()
@@ -95,7 +97,7 @@ export class ScreenSocket {
       this.io.adapter(adapter(config.redis));
     }
 
-    debug('socket namespace: ', namespace);
+    Info('socket namespace: ', namespace);
     this.io = io.of(namespace);
     // handshake middleware
     this.io.use(this.handshake);
@@ -106,14 +108,14 @@ export class ScreenSocket {
       trigger: Date.now() + 2000
     };
     setInterval(function () {
-      debug('next animation');
+      Info('next animation');
       eventos.trigger = Date.now() + 2000;
       io.sockets.emit('eventos', eventos);
     }, 5000);
   }
 
   addClient = socket => {
-    debug('client connected', socket.id);
+    Info('client connected', socket.id);
     const client = new SocketClient(this.io, socket);
     return client;
   }

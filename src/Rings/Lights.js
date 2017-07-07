@@ -3,23 +3,24 @@ import * as TWEEN from 'tween';
 
 /* Lights Builder */
 
-const Group = function ( name ) {
+const GroupEx = function ( name ) {
   THREE.Group.call( this );
   // add the desired properties
   this.name = name;
+  this.type = 'GroupEx'
 }
 
-Group.prototype = Object.create( THREE.Group.prototype );
-Group.prototype.constructor = Group;
+GroupEx.prototype = Object.create( THREE.Group.prototype );
+GroupEx.prototype.constructor = GroupEx;
 // define the getPoint function for the subClass
 
-export default class Lights extends Group {
+export default class Lights extends GroupEx {
   constructor (templates) {
     super()
     const lights = this.createLights(templates);
-    const helpers = this.createHelpers(lights);
     this.add(lights);
-    this.add(helpers);
+    // const helpers = this.createHelpers(lights);
+    // this.add(helpers);
   }
 
   /*
@@ -56,7 +57,7 @@ export default class Lights extends Group {
         helpers.add(helper);
         return helpers;
       } 
-    }, new Group('helpers'));
+    }, new GroupEx('helpers'));
   }
 
   createLights (templates) {
@@ -76,7 +77,7 @@ export default class Lights extends Group {
     .reduce((group, light) => {
       group.add(light);
       return group;
-    }, new Group('lights'));
+    }, new GroupEx('lights'));
 
 
     // var l = lights.children[2];
