@@ -7,31 +7,32 @@ const glossMaterial = function () {
   texture.repeat.multiplyScalar( 24 );
   texture.anisotropy = 16;
 
-  const material = new THREE.MeshPhongMaterial({ 
+  const material = new THREE.MeshPhongMaterial({
     color: 0xFFFFFF,
     side: THREE.DoubleSide,
-    specular: 0x111111, 
-    shininess: 200, 
+    specular: 0x111111,
+    shininess: 200,
     shading: THREE.FlatShading,
     map: texture,
     specularMap: texture
   });
 
+  material.name = 'gloss';
   material.color.setHSL( 0.1, 0.25, 0.25 );
   material.specular.setHSL( 0, 0, 0.1 );
   return material;
 }
 
-const donutMaterial = function () {    
+const donutMaterial = function () {
   const bump = proceduralTexture('noise', 512, 512, 75);
   const roughness = proceduralTexture('perlin', 128, 128, 75);
 
-  bump.repeat.set( Math.random() * 124, Math.random() * 124 );
-  bump.offset.set( Math.random() * 10, Math.random() * 10);
-  roughness.offset.set( Math.random() * 10, Math.random() * 10);
+  bump.repeat.set(Math.random() * 124, Math.random() * 124);
+  bump.offset.set(Math.random() * 10, Math.random() * 10);
+  roughness.offset.set(Math.random() * 10, Math.random() * 10);
 
-  const material = new THREE.MeshStandardMaterial({ 
-    color: 0x222222, 
+  const material = new THREE.MeshStandardMaterial({
+    color: 0x222222,
     side: THREE.DoubleSide,
     map: roughness.clone(),
     roughness: 0.6,
@@ -43,14 +44,34 @@ const donutMaterial = function () {
     metalnessMap: roughness,
     bumpScale: 0.01
   });
+
+  material.name = 'donut';
   return material;
 }
 
 const mirrorMaterial = function (envMap) {
-  return new THREE.MeshBasicMaterial({
+  const material = new THREE.MeshBasicMaterial({
     color: 0xFFFFFF,
-    envMap: envMap
+    envMap: envMap,
+    name: 'mirror'
   });
+  return material;
+}
+
+export const skyBox = function () {
+  // define path and box sides images
+  const skybox = new THREE.CubeTextureLoader()
+  .setPath('/images/skybox/')
+  .load([
+    'sbox_px.jpg',
+    'sbox_nx.jpg',
+    'sbox_py.jpg',
+    'sbox_ny.jpg',
+    'sbox_pz.jpg',
+    'sbox_nz.jpg'
+  ]);
+  skybox.format = THREE.RGBFormat;
+  return skybox;
 }
 
 /* Materials */
@@ -70,10 +91,10 @@ export const roughness = proceduralTexture('perlin', 128, 128, 75);
 
 /* Materials */
 export const gloss = glossMaterial();
-export const phong = new THREE.MeshPhongMaterial({ 
+export const phong = new THREE.MeshPhongMaterial({
   color: 0xFFFFFF,
   side: THREE.DoubleSide,
-  specular: 0x009900, 
-  shininess: 1, 
+  specular: 0x009900,
+  shininess: 1,
   shading: THREE.FlatShading
 });

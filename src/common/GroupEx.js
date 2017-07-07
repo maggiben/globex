@@ -5,9 +5,8 @@ const GroupEx = function (name) {
   // add the desired properties
   this.name = name;
   this.type = 'GroupEx';
-  this.getObjectsByProperty = (property, value) => {
-    return this.children.filter(child => child[property] === value);
-  }
+  this.getObjectsByProperty = (property, value) => this.children.filter(child => (child[property] === value));
+  this.getObjectByType = (type) => this.children.find(child => (child.type === type));
 }
 
 GroupEx.prototype = Object.create( THREE.Group.prototype );

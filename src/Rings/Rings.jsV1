@@ -43,8 +43,52 @@ export default class Rings {
 
     this.scene = window.scene = new THREE.Scene();
     const sky = new Sky();
+    // const effectController  = {
+    //   turbidity: 10,
+    //   rayleigh: 2,
+    //   mieCoefficient: 0.005,
+    //   mieDirectionalG: 0.8,
+    //   luminance: 1,
+    //   inclination: 0.49, // elevation / inclination
+    //   azimuth: 0.25, // Facing front,
+    //   sun: ! true
+    // };
+
     this.scene.add( sky.mesh );
     sky.update();
+
+    // Add Sun Helper
+    // const sunSphere = new THREE.Mesh(
+    //   new THREE.SphereBufferGeometry( 20000, 16, 8 ),
+    //   new THREE.MeshBasicMaterial( { color: 0xffffff } )
+    // );
+    // sunSphere.position.y = - 700000;
+    // sunSphere.visible = false;
+    // this.scene.add( sunSphere );
+
+    // var distance = 400000;
+    // sky.uniforms.turbidity.value = effectController.turbidity;
+    // sky.uniforms.rayleigh.value = effectController.rayleigh;
+    // sky.uniforms.luminance.value = effectController.luminance;
+    // sky.uniforms.mieCoefficient.value = effectController.mieCoefficient;
+    // sky.uniforms.mieDirectionalG.value = effectController.mieDirectionalG;
+
+    // var theta = Math.PI * ( effectController.inclination - 0.5 );
+    // var phi = 2 * Math.PI * ( effectController.azimuth - 0.5 );
+
+    // // sunSphere.position.x = distance * Math.cos( phi );
+    // // sunSphere.position.y = distance * Math.sin( phi ) * Math.sin( theta );
+    // // sunSphere.position.z = distance * Math.sin( phi ) * Math.cos( theta );
+
+    // var pos = {}
+    // pos.x = distance * Math.cos( phi );
+    // pos.y = distance * Math.sin( phi ) * Math.sin( theta );
+    // pos.z = distance * Math.sin( phi ) * Math.cos( theta );
+
+    // // sunSphere.visible = effectController.sun;
+
+    // sky.uniforms.sunPosition.value.copy( new THREE.Vector3(pos.x, pos.y, pos.z) );
+
     // this.scene.background = Materials.skyBox();
 
     this.stage = new Stage(element);
@@ -83,9 +127,6 @@ export default class Rings {
     this.groups.actors.add(Utils.repeatObjectsAlongPath(Actors.donut(), this.path, this.options.segments));
     this.scene.add(this.groups.actors);
     this.groups.actors.add(this.demo());
-
-    const sun = this.groups.lights.getObjectByName('sun');
-    sun.position.copy(sky.getSunPosition());
     // Materials.simplify(this.groups.actors);
 
 
