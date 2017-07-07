@@ -16,11 +16,30 @@ GroupEx.prototype.constructor = GroupEx;
 // define the getPoint function for the subClass
 
 export default class Cameras extends GroupEx {
+
+   static createCubeCameras () {
+    const group = new THREE.Group();
+
+    const cubeCamera_a = new THREE.CubeCamera(1, 5000, 256); 
+    cubeCamera_a.renderTarget.texture.minFilter = THREE.LinearMipMapLinearFilter;
+    cubeCamera_a.name = 'cubeCamera_a';
+
+    const cubeCamera_b = new THREE.CubeCamera(1, 5000, 256); 
+    cubeCamera_b.renderTarget.texture.minFilter = THREE.LinearMipMapLinearFilter;
+    cubeCamera_b.name = 'cubeCamera_b';
+
+    group.add(cubeCamera_a);
+    group.add(cubeCamera_b);
+    group.name = 'cubeCameras';
+
+    return group;
+  }
+
   constructor (view) {
     super()
-    const camera = this.createCamera(...args);
-    const helpers = this.createHelpers(lights);
-    this.add(camera);
+    // const camera = this.createCamera(...args);
+    // const helpers = this.createHelpers(lights);
+    // this.add(camera);
   }
 
   /*

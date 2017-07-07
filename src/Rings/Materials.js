@@ -28,7 +28,6 @@ const donutMaterial = function () {
 
   bump.repeat.set( Math.random() * 124, Math.random() * 124 );
   bump.offset.set( Math.random() * 10, Math.random() * 10);
-  
   roughness.offset.set( Math.random() * 10, Math.random() * 10);
 
   const material = new THREE.MeshStandardMaterial({ 
@@ -47,6 +46,13 @@ const donutMaterial = function () {
   return material;
 }
 
+const mirrorMaterial = function (envMap) {
+  return new THREE.MeshBasicMaterial({
+    color: 0xFFFFFF,
+    envMap: envMap
+  });
+}
+
 /* Materials */
 export const simplify = function (container) {
   if (container.children.length) {
@@ -57,7 +63,7 @@ export const simplify = function (container) {
     container.material.needsUpdate = true;
   }
 }
-
+export const mirror = mirrorMaterial;
 export const donut = donutMaterial();
 export const bump = proceduralTexture('noise', 512, 512, 75);
 export const roughness = proceduralTexture('perlin', 128, 128, 75);

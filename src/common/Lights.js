@@ -2,6 +2,8 @@ import * as THREE from 'THREE';
 import * as TWEEN from 'tween';
 import GroupEx from './GroupEx';
 
+const VALID_LIGHT_PROPERTIES = ['intensity', 'distance', 'angle', 'penumbra', 'decay', 'name'];
+
 export default class Lights extends GroupEx {
   constructor (templates) {
     super()
@@ -23,19 +25,37 @@ export default class Lights extends GroupEx {
     }, new GroupEx('helpers'));
   }
 
+  createHelper (light) {
+    const helpers = this.getObjectByName('helpers') || new GroupEx('helpers');
+    const type = light.type.concat('Helper');
+    if (type in THREE) {
+      const helper = new THREE[type](light);
+      helpers.add(helper);
+    }
+  }
+
   /* create lights */
   createLights (templates) {
     return templates.reduce(function (lights, properties) {
-      const { color, intensity, position, name, type, castShadow = false } = properties;
+      const { color, position, type, castShadow = false } = properties;
       if (type in THREE) {
         const light = new THREE[type](color);
         light.position.fromArray(position);
-        light.intensity = intensity;
+        Object.keys(properties).filter(key => VALID_LIGHT_PROPERTIES.includes(key)).forEach(function (key) {
+          // console.info('properties', properties.name, key);
+          light[key] = properties[key];
+        });
         light.castShadow = castShadow;
-        light.name = name;
         lights.add(light);
       }
       return lights;
     }, new GroupEx('lights'));
   }
+
+  attachCameraSpotLight (...args) {
+    const light = new THREE.SpotLight(...args);
+    light.castShadow = true;
+    return this.add(light);
+  }
+
 }

@@ -4,22 +4,30 @@
     "color": 16711680,
     "intensity": 1,
     "position": [ 60, 30, 90 ]
-  },
-  {
+  }, {
     "type": "DirectionalLight",
     "color": 255,
     "intensity": 1,
     "position": [ -120, 30, 0 ],
     "name": "blueLight"
-  },
-  {
+  }, {
     "type": "SpotLight",
     "color": 16777215,
     "intensity": 1,
     "position": [3, 40, 3],
     "name": "primary"
+  },{
+    "type": "SpotLight",
+    "color": 65280,
+    "intensity": 4,
+    "distance": 100,
+    "angle": 0.5235987755982988,
+    "penumbra": 0.5,
+    "decay": 2,
+    "position": [0, 0, 0],
+    "name": "frontera"
   }],
   "floor": {
-    
+
   }
 }
