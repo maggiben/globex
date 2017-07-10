@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import * as TWEEN from 'tween';
 import throttle from 'lodash/throttle';
+import debounce from 'lodash/debounce';
 
 const debug = throttle(console.log, 1000)
 
@@ -39,4 +40,13 @@ export const repeatObjectsAlongPath = function (object, path, segments = 24) {
   .reduce(function (group, object) {
     return group.add(object);
   }, new THREE.Group());
+}
+
+export const onWindowResized = function(renderer, camera) {
+  const onResize = debounce(event => {
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+  });
+  window.addEventListener( 'resize', onResize, false );
 }

@@ -23,7 +23,7 @@
     {
       "type": "DirectionalLight",
       "color": 16777215,
-      "intensity": 25,
+      "intensity": 8,
       "position": [3, 100, 3],
       "name": "sun"
     },
@@ -43,7 +43,7 @@
     {
       "type": "SpotLight",
       "color": 16777215,
-      "intensity": 12,
+      "intensity": 6.5,
       "position": [3, 100, 3],
       "castShadow": true,
       "distance": 500,

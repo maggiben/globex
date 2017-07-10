@@ -8,11 +8,9 @@ import Algebra from '../common/Algebra';
 
 
 export const donut = function () {
-  const geometry = new THREE.TorusGeometry(2, 0.5, 6, 48)
+  const geometry = new THREE.TorusGeometry(2, 0.5, 48, 48)
   const mesh = new THREE.Mesh(geometry, Materials.donut);
   mesh.name = 'donut';
-  mesh.position.set(0, 0, 0);
-  mesh.rotation.set(0, 0, 0);
   mesh.castShadow = true;
   mesh.receiveShadow = true;
 
@@ -27,7 +25,6 @@ export const floor = function (width, height) {
   mesh.rotation.set(0, 0, 0);
   mesh.rotation.x = Algebra.de2ra(90);
   mesh.receiveShadow = true;
-
   return mesh;
 };
 

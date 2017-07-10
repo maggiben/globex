@@ -38,15 +38,15 @@ export default class Stage extends View {
 
   createRenderer ({width, height}) {
     const renderer = new THREE.WebGLRenderer({
-      precision: 'lowp',
-      // antialias: true,
+      // precision: 'lowp',
+      antialias: true,
       // clearAlpha: 1
     });
     renderer.setClearColor(0x000000);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(width, height);
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFShadowMap; // default THREE.PCFSoftShadowMap low: BasicShadowMap
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFSoftShadowMap low: BasicShadowMap
     this.renderer = renderer;
     return renderer;
   }

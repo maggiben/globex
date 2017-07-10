@@ -24,11 +24,11 @@ export const createCameraHelper = function ({fullWidth, fullHeight, x, y, width,
 export const createCubeCameras = function () {
   const group = new GroupEx('cubeCameras');
 
-  const cubeCamera_a = new THREE.CubeCamera(1, 2000000, 256);
+  const cubeCamera_a = new THREE.CubeCamera(1, 2000, 512);
   cubeCamera_a.renderTarget.texture.minFilter = THREE.LinearMipMapLinearFilter;
   cubeCamera_a.name = 'cubeCamera_a';
 
-  const cubeCamera_b = new THREE.CubeCamera(1, 2000000, 256);
+  const cubeCamera_b = new THREE.CubeCamera(1, 2000, 512);
   cubeCamera_b.renderTarget.texture.minFilter = THREE.LinearMipMapLinearFilter;
   cubeCamera_b.name = 'cubeCamera_b';
 

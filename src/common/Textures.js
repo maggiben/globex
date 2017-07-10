@@ -3,6 +3,7 @@
 import * as THREE from 'three';
 import * as TWEEN from 'tween';
 import * as tooloud from 'tooloud';
+import { Perlin } from './Noise';
 
 const createCanvas = function (width, height) {
   const canvas = document.createElement('canvas');
@@ -11,7 +12,7 @@ const createCanvas = function (width, height) {
   const context = canvas.getContext('2d');
   const imageData = context.getImageData(0, 0, width, height);
   return { canvas, context, imageData };
-} 
+}
 
 /* Noise fx */
 const noise = function (width, height, amount = 100) {
@@ -28,18 +29,19 @@ const noise = function (width, height, amount = 100) {
 
 const perlin = function (width, height) {
   const { canvas, context, imageData } = createCanvas(width, height);
-  tooloud.default.Perlin.setSeed(Math.floor(Math.random() * 10000));
+  //tooloud.default.Perlin.setSeed(Math.floor(Math.random() * 10000));
+  const perlin = new Perlin(Math.random() * 10000);
 
   for (let i = 0; i < width; i++) {
     for (let j = 0; j < height; j++) {
       let index = (i + j * width) * 4;
 
       // In one go:
-      let x = 15 * (i / width), 
+      let x = 15 * (i / width),
           y = 5 * (j / height),         // You can use different scale values for each coordinate
           z = 0;
 
-      let n = tooloud.default.Perlin.noise(x, y, z),  // calculate noise value at x, y, z
+      let n = perlin.noise(x, y, z),  // calculate noise value at x, y, z
           r = Math.floor(255 * n),
           g = Math.floor(255 * n),
           b = Math.floor(255 * n);
@@ -58,12 +60,12 @@ const perlin = function (width, height) {
 const worley = function (width, height, amount = 100) {
   const { canvas, context, imageData } = createCanvas(width, height);
   tooloud.default.Worley.setSeed(Math.floor(Math.random() * 10000));
-  
+
   for(let x = 0; x < width; x++ ){
     for(let y = 0; y < height; y++ ){
       let index = (x + y * width) * 4;
       // In one go:
-      let x = 15 * (x / width), 
+      let x = 15 * (x / width),
           y = 5 * (y / height),         // You can use different scale values for each coordinate
           z = 0;
 
@@ -88,7 +90,7 @@ export const generators = {
 export const proceduralTexture = function (generator, ...options) {
   const texture = new THREE.CanvasTexture(generators[generator](...options));
   texture.anisotropy = 2;
-  texture.repeat.set(3, 3);
+  // texture.repeat.set(3, 3);
   texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
   texture.format = THREE.RGBFormat;
   return texture;

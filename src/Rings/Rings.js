@@ -55,6 +55,7 @@ export default class Rings {
 
     /* Cameras */
     this.camera = createPerspectiveCamera(this.options.view);
+    Utils.onWindowResized(this.renderer, this.camera);
     this.camera.position.set(0, 38, 8);
     this.camera.lookAt(this.scene.position);
     this.groups.cameras.add(this.camera);
@@ -88,7 +89,7 @@ export default class Rings {
     sun.shadow.mapSize.width = 2048;
     sun.shadow.mapSize.height = 2048;
 
-    sun.shadow.camera.near = 10;
+    sun.shadow.camera.near = 1;
     sun.shadow.camera.far = 100;
     sun.shadow.camera.fov = 50;
 
@@ -115,7 +116,7 @@ export default class Rings {
     const moveLight = Utils.translateFromPath(objects.light, path, true);
 
     const tween = new TWEEN.default.Tween({ position: 1 })
-      .to({ position: 0 }, 30000)
+      .to({ position: 0 }, 90000)
       .onUpdate(function(progress) {
         const { position } = this;
         const point_z = path.getPoint(this.position + 0.0001);
@@ -147,7 +148,7 @@ export default class Rings {
 
   demo () {
     const cubeCamera = this.cubeCameras.getObjectByType('CubeCamera');
-    const geometry = new THREE.SphereBufferGeometry( 1, 32, 32 );
+    const geometry = new THREE.SphereBufferGeometry( 1, 64, 64 );
     const mesh = new THREE.Mesh(geometry, Materials.mirror(cubeCamera.renderTarget.texture));
     mesh.name = 'demo';
     return mesh;

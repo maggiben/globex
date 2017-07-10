@@ -11,7 +11,7 @@ const glossMaterial = function () {
     color: 0xFFFFFF,
     side: THREE.DoubleSide,
     specular: 0x111111,
-    shininess: 100,
+    shininess: 200,
     shading: THREE.FlatShading,
     map: texture,
     specularMap: texture,
@@ -20,14 +20,14 @@ const glossMaterial = function () {
   });
 
   material.name = 'gloss';
-  material.color.setHSL( 0.1, 0.25, 0.25 );
-  material.specular.setHSL( 0, 0, 0.1 );
+  // material.color.setHSL( 0.1, 0.25, 0.25 );
+  // material.specular.setHSL( 0, 0, 0.1 );
   return material;
 }
 
 const donutMaterial = function () {
   const bump = proceduralTexture('noise', 512, 512, 75);
-  const roughness = proceduralTexture('perlin', 128, 128, 75);
+  const roughness = proceduralTexture('perlin', 512, 512, 75);
 
   bump.repeat.set(Math.random() * 124, Math.random() * 124);
   bump.offset.set(Math.random() * 10, Math.random() * 10);
@@ -36,7 +36,7 @@ const donutMaterial = function () {
   const material = new THREE.MeshStandardMaterial({
     color: 0x222222,
     side: THREE.DoubleSide,
-    map: roughness.clone(),
+    map: roughness,
     roughness: 0.6,
     emissive: 0x111111,
     metalness: 0.5,
