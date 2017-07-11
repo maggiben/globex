@@ -1,11 +1,7 @@
-import * as THREE from 'THREE';
-import EffectComposer, { RenderPass, ShaderPass, CopyShader } from 'three-effectcomposer-es6';
-import 'wagner/';
-import 'wagner/base';
+import * as THREE from 'three';
 import * as TWEEN from 'tween';
 import * as OrbitControls from 'three-orbitcontrols';
 // import * as Debug from 'debug';
-import throttle from 'lodash/throttle';
 
 import Stage from '../common/Stage';
 import Ellipse from '../common/Ellipse';
@@ -86,8 +82,8 @@ export default class Rings {
     this.groups.actors.add(this.demo());
 
     const sun = this.groups.lights.getObjectByName('sun');
-    sun.shadow.mapSize.width = 2048;
-    sun.shadow.mapSize.height = 2048;
+    sun.shadow.mapSize.width = 512;
+    sun.shadow.mapSize.height = 512;
 
     sun.shadow.camera.near = 1;
     sun.shadow.camera.far = 100;
@@ -100,7 +96,7 @@ export default class Rings {
 
 
     /* Animation */
-    this.animateActors(this.path);
+    // this.animateActors(this.path);
 
     element.appendChild(this.renderer.domElement);
   }
@@ -116,7 +112,7 @@ export default class Rings {
     const moveLight = Utils.translateFromPath(objects.light, path, true);
 
     const tween = new TWEEN.default.Tween({ position: 1 })
-      .to({ position: 0 }, 90000)
+      .to({ position: 0 }, 30000)
       .onUpdate(function(progress) {
         const { position } = this;
         const point_z = path.getPoint(this.position + 0.0001);

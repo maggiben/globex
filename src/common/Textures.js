@@ -57,6 +57,36 @@ const perlin = function (width, height) {
   return canvas;
 }
 
+const perlinPeriodic = function (width, height) {
+  const { canvas, context, imageData } = createCanvas(width, height);
+  //tooloud.default.Perlin.setSeed(Math.floor(Math.random() * 10000));
+  const perlin = new Perlin(Math.random() * 10000);
+
+  for (let i = 0; i < width; i++) {
+    for (let j = 0; j < height; j++) {
+      let index = (i + j * width) * 4;
+
+      // In one go:
+      let x = 15 * (i / width),
+          y = 15 * (j / height),         // You can use different scale values for each coordinate
+          z = 0;
+
+      let n = perlin.pnoise3(x, y, z, 15, 15, 0),  // calculate noise value at x, y, z
+          r = Math.floor(255 * n),
+          g = Math.floor(255 * n),
+          b = Math.floor(255 * n);
+
+      imageData.data[index + 0] = r;            // R
+      imageData.data[index + 1] = g;            // G
+      imageData.data[index + 2] = b;            // B
+      imageData.data[index + 3] = 255;          // A
+    }
+  }
+
+  context.putImageData(imageData, 0, 0);
+  return canvas;
+}
+
 const worley = function (width, height, amount = 100) {
   const { canvas, context, imageData } = createCanvas(width, height);
   tooloud.default.Worley.setSeed(Math.floor(Math.random() * 10000));
@@ -84,7 +114,8 @@ const worley = function (width, height, amount = 100) {
 export const generators = {
   noise,
   perlin,
-  worley
+  worley,
+  perlinPeriodic
 };
 
 export const proceduralTexture = function (generator, ...options) {
@@ -96,4 +127,9 @@ export const proceduralTexture = function (generator, ...options) {
   return texture;
 }
 
+export const noiseTexture = function (generator, ...options) {
+  const texture = new THREE.CanvasTexture(generators[generator](...options));
+  texture.format = THREE.RGBFormat;
+  return texture;
+}
 

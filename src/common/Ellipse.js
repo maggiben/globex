@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+
 const Ellipse = function ( xRadius, yRadius ) {
   THREE.Curve.call( this );
   // add the desired properties

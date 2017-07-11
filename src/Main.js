@@ -4,6 +4,7 @@ import './Main.css!'
 // import Socket from 'Socket';
 import Globe from './Globe/Globe';
 import Rings from './Rings/Rings';
+import Torus from './Arena/Torus';
 
 const params = (new URL(window.location)).searchParams;
 const container = document.getElementById('stage');
@@ -19,8 +20,13 @@ const options = {
   }
 };
 
-const rings = window.rings = new Rings(container, options);
-rings.animate();
+
+const torus = window.torus = new Torus(container, options);
+torus.animate();
+
+
+// const rings = window.rings = new Rings(container, options);
+// rings.animate();
 
 // const globe = new Globe(container, options);
 // globe.animate();

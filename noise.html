@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="googlebot" content="noindex, nofollow">
+    <title>Noise tester</title>
+    <script type="text/javascript" src="src/common/Noise.js"></script>
+    <script type="text/javascript" src="https://rawgit.com/jackunion/tooloud/master/dist/tooloud.min.js"></script>
+  </head>
+
+  <body>
+    <canvas id="canvas-a" width="256" height="256"></canvas>
+    <canvas id="canvas-b" width="256" height="256"></canvas>
+    <script>
+      const SEED = Math.random() * 10000;
+
+
+      function render_a(width = 256, height = 256) {
+        const { canvas, context, imageData } = createCanvas('canvas-a', width, height);
+        const perlin = new Perlin(SEED);
+        for (let i = 0; i < width; i++) {
+          for (let j = 0; j < height; j++) {
+            let index = (i + j * width) * 4;
+
+            // In one go:
+            let x = 15 * (i / width),
+                y = 15 * (j / height),         // You can use different scale values for each coordinate
+                z = 0;
+
+            let n = perlin.pnoise3(x, y, z, 15, 15, 0),  // calculate noise value at x, y, z
+                r = Math.floor(255 * n),
+                g = Math.floor(255 * n),
+                b = Math.floor(255 * n);
+
+            imageData.data[index + 0] = r;            // R
+            imageData.data[index + 1] = g;            // G
+            imageData.data[index + 2] = b;            // B
+            imageData.data[index + 3] = 255;          // A
+          }
+        }
+        context.putImageData(imageData, 0, 0);
+      }
+      function render_b(width = 256, height = 256) {
+        const { canvas, context, imageData } = createCanvas('canvas-b', width, height);
+        tooloud.Perlin.setSeed(SEED);
+        for (let i = 0; i < width; i++) {
+          for (let j = 0; j < height; j++) {
+            let index = (i + j * width) * 4;
+
+            // In one go:
+            let x = 5 * (i / width),
+                y = 5 * (j / height),         // You can use different scale values for each coordinate
+                z = 0;
+
+            let n = tooloud.Perlin.noise(x, y, z),  // calculate noise value at x, y, z
+                r = Math.floor(255 * n),
+                g = Math.floor(255 * n),
+                b = Math.floor(255 * n);
+
+            imageData.data[index + 0] = r;            // R
+            imageData.data[index + 1] = g;            // G
+            imageData.data[index + 2] = b;            // B
+            imageData.data[index + 3] = 255;          // A
+          }
+        }
+        context.putImageData(imageData, 0, 0);
+      }
+      window.onload = function () {
+        render_a()
+        render_b()
+      }
+    </script>
+  </body>
+
+</html>

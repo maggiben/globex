@@ -1,4 +1,4 @@
-import * as THREE from 'THREE';
+import * as THREE from 'three';
 import { proceduralTexture } from '../common/Textures';
 
 const glossMaterial = function () {

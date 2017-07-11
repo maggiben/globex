@@ -1,4 +1,4 @@
-import * as THREE from 'THREE';
+import * as THREE from 'three';
 
 const GroupEx = function (name) {
   THREE.Group.call(this);

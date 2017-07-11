@@ -1,4 +1,4 @@
-import * as THREE from 'THREE';
+import * as THREE from 'three';
 import * as TWEEN from 'tween';
 
 import * as Utils from '../common/Utils';

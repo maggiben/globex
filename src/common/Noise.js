@@ -7,6 +7,16 @@ const permutation = Array.from({length: 0xFF}, (v, i) => i).reduce((acc, el) => 
   return acc;
 }, []);
 
+const createCanvas = function (id, width, height) {
+  // const canvas = document.createElement('canvas');
+  const canvas = document.getElementById(id);
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext('2d');
+  const imageData = context.getImageData(0, 0, width, height);
+  return { canvas, context, imageData };
+}
+
 function xorshift (seed) {
   var x = seed ^ (seed >> 12);
   x = x ^ (x << 25);
@@ -39,59 +49,78 @@ export class Perlin {
 
   noise (x, y, z) {
     const { seed, perm } = this;
-    var X = Math.floor(x) & 255,
-        Y = Math.floor(y) & 255,
-        Z = Math.floor(z) & 255;
-    x -= Math.floor(x);
-    y -= Math.floor(y);
-    z -= Math.floor(z);
-    var u = fade(x),
-        v = fade(y),
-        w = fade(z);
-    var A = perm[X  ]+Y, AA = perm[A]+Z, AB = perm[A+1]+Z,
-        B = perm[X+1]+Y, BA = perm[B]+Z, BB = perm[B+1]+Z;
+
+    const iX = Math.floor(x) & 255;  // Integer part of x
+    const iY = Math.floor(y) & 255;  // Integer part of y
+    const iZ = Math.floor(z) & 255;  // Integer part of z
+    const fX = x % 1; // Fractional part of x
+    const fY = y % 1; // Fractional part of y
+    const fZ = z % 1; // Fractional part of z
+    
+    const u = fade(fX);
+    const v = fade(fY);
+    const w = fade(fZ);
+
+    const A = perm[iX  ]+iY, AA = perm[A]+iZ, AB = perm[A+1]+iZ;
+    const B = perm[iX+1]+iY, BA = perm[B]+iZ, BB = perm[B+1]+iZ;
 
     return lerp(w,
-        lerp(v,
-            lerp(u, grad(perm[AA], x, y, z), grad(perm[BA], x-1, y, z)),
-            lerp(u, grad(perm[AB], x, y-1, z), grad(perm[BB], x-1, y-1, z))
+      lerp(v,
+        // lerp(u, grad(perm[AA], fX, fY, fZ), grad(perm[BA], fX-1, fY, fZ)),
+        lerp(u, 
+          // grad(perm[AA], fX, fY, fZ),
+          grad(perm[ perm[ perm[iX] + iY] + iZ], fX, fY, fZ),
+          grad(perm[BA], fX-1, fY, fZ)
         ),
-        lerp(v,
-            lerp(u, grad(perm[AA+1], x, y, z-1), grad(perm[BA+1], x-1, y, z-1)),
-            lerp(u, grad(perm[AB+1], x, y-1, z-1), grad(perm[BB+1], x-1, y-1, z-1))
-        )
+        lerp(u, grad(perm[AB], fX, fY-1, fZ), grad(perm[BB], fX-1, fY-1, fZ))
+      ),
+      lerp(v,
+        lerp(u, grad(perm[AA+1], fX, fY, fZ-1), grad(perm[BA+1], fX-1, fY, fZ-1)),
+        lerp(u, grad(perm[AB+1], fX, fY-1, fZ-1), grad(perm[BB+1], fX-1, fY-1, fZ-1))
+      )
     )
   }
-  // // 3D float Perlin noise
-  // noise3 (x, y, z) {
-  //   const { seed, perm } = this;
-  //   x += seed;
-  //   y += seed;
-  //   z += seed;
-  //   let iX = Math.floor(x) & 255; // Integer part of x
-  //   let iY = Math.floor(y) & 255; // Integer part of y
-  //   let iZ = Math.floor(z) & 255; // Integer part of z
 
-  //   let fX = x - iX;      // Fractional part of x
-  //   let fY = y - iY;      // Fractional part of y
-  //   let fZ = z - iZ;      // Fractional part of z
+  pnoise3 (x, y, z, px, py, pz) {
+    const { seed, perm } = this;
 
-  //   const u = fade(fX);
-  //   const v = fade(fY);
-  //   const w = fade(fZ);
+    const iX = (Math.floor(x) % px) & 255;  // Integer part of x
+    const iY = (Math.floor(y) % py) & 255;  // Integer part of y
+    const iZ = (Math.floor(z) % pz) & 255;  // Integer part of z
 
-  //   const A = perm[iX]+iY, AA = perm[A]+iZ, AB = perm[A+1]+iZ, B = perm[iX+1]+iY, BA = perm[B]+iZ, BB = perm[B+1]+iZ;
+    const fX = x % 1; // Fractional part of x
+    const fY = y % 1; // Fractional part of y
+    const fZ = z % 1; // Fractional part of z
+    
+    const u = fade(fX);
+    const v = fade(fY);
+    const w = fade(fZ);
 
-  //   return lerp(w,
-  //     lerp(v,
-  //       lerp(u, grad(perm[AA], fX, fY, fZ), grad(perm[BA], fX - 1, fY, fZ)),
-  //       lerp(u, grad(perm[AB], fX, fY - 1, fZ), grad(perm[BB], fX - 1, fY - 1, fZ))
-  //     ),
-  //     lerp(v,
-  //       lerp(u, grad(perm[AA + 1], fX, fY, fZ - 1), grad(perm[BA + 1], fX - 1, fY, fZ - 1)),
-  //       lerp(u, grad(perm[AB + 1], fX, fY - 1, fZ - 1), grad(perm[BB + 1], fX - 1, fY - 1, fZ - 1))
-  //     )
-  //   )
-  // }
+    const A = perm[iX  ]+iY, AA = perm[A]+iZ, AB = perm[A+1]+iZ;
+    const B = perm[iX+1]+iY, BA = perm[B]+iZ, BB = perm[B+1]+iZ;
+
+    return lerp(w,
+      lerp(v,
+        lerp(u, 
+          grad(perm[AA], fX, fY, fZ),
+          grad(perm[BA], fX-1, fY, fZ)
+        ),
+        lerp(u, 
+          grad(perm[AB], fX, fY-1, fZ), 
+          grad(perm[BB], fX-1, fY-1, fZ)
+        )
+      ),
+      lerp(v,
+        lerp(u, 
+          grad(perm[AA+1], fX, fY, fZ-1), 
+          grad(perm[BA+1], fX-1, fY, fZ-1)
+        ),
+        lerp(u, 
+          grad(perm[AB+1], fX, fY-1, fZ-1), 
+          grad(perm[BB+1], fX-1, fY-1, fZ-1)
+        )
+      )
+    )
+  }
 }
 
