@@ -8,7 +8,7 @@ import Algebra from '../common/Algebra';
 
 
 export const donut = function () {
-  const geometry = new THREE.TorusGeometry(2, 0.5, 48, 48)
+  const geometry = new THREE.TorusGeometry(2, 0.5, 24, 24)
   const mesh = new THREE.Mesh(geometry, Materials.donut);
   mesh.name = 'donut';
   mesh.castShadow = true;

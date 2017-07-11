@@ -28,10 +28,25 @@ export default class Rings {
         height: window.innerHeight
       },
       radius: 42,
-      segments: 34
+      segments: 84
     }, options);
 
-    this.path = new Track(Scenario.track);
+    const polygon = [
+      [68.5,  0, 185.5],
+      [1,     0, 262.5],
+      [270.9, 0, 281.9],
+      [345.5, 0, 212.8],
+      [178,   0, 155.7],
+      [240.3, 10, 72.3],
+      [153.4, 0, 0.6],
+      [52.6,  0, 53.3],
+      [68.5,  0, 185.5]
+    ];
+
+    // this.path = new Track(polygon, 'race'); //new Ellipse(this.options.radius, this.options.radius);
+    this.path = new Track(polygon); //new Ellipse(this.options.radius, this.options.radius);
+
+    console.log(this.path)
 
     this.groups = ['fixed', 'actors', 'cameras'].reduce(function (group, name) {
       group[name] = new GroupEx(name);
@@ -40,9 +55,9 @@ export default class Rings {
 
     this.scene = window.scene = new THREE.Scene();
     const sky = new Sky();
-    // this.scene.add( sky.mesh );
+    this.scene.add( sky.mesh );
     sky.update();
-    this.scene.background = Materials.skyBox();
+    // this.scene.background = Materials.skyBox();
 
     this.stage = new Stage(element);
     this.stats = this.stage.showStats();
@@ -67,7 +82,7 @@ export default class Rings {
 
     /* Static objects */
     // this.groups.fixed.add(Actors.tube(this.options.radius, this.options.segments));
-    // this.groups.fixed.add(Actors.floor(500, 500));
+    this.groups.fixed.add(Actors.floor(this.options.radius * 4, this.options.radius * 4));
     this.scene.add(this.groups.fixed);
 
 
@@ -80,8 +95,8 @@ export default class Rings {
     // this.groups.actors.add(Actors.glowBall(this.path));
 
     this.groups.actors.add(this.path.createHelper());
-    this.groups.actors.add(this.path.place(Actors.donut(), this.options.segments))
 
+    this.groups.actors.add(Utils.repeatInSpline(Actors.donut(), this.path, this.options.segments));
     this.scene.add(this.groups.actors);
     this.groups.actors.add(this.demo());
 
@@ -90,7 +105,7 @@ export default class Rings {
     sun.shadow.mapSize.height = 512;
 
     sun.shadow.camera.near = 1;
-    sun.shadow.camera.far = 500;
+    sun.shadow.camera.far = 100;
     sun.shadow.camera.fov = 50;
 
     sun.position.copy(sky.getSunPosition());
@@ -101,7 +116,7 @@ export default class Rings {
 
     /* Animation */
     // this.animateActors(this.path);
-    this.animateCamera(this.camera, this.path)
+    // this.animateCamera(this.camera, this.path)
 
     element.appendChild(this.renderer.domElement);
   }
@@ -114,10 +129,11 @@ export default class Rings {
     const tween = new TWEEN.default.Tween({ position: 0 })
       .to({ position: 1 }, 30000)
       .onUpdate(function(progress) {
-        // path.moveTo(camera, [0, 0, 1], position);
+        const { position } = this;
+        // moveCamera(position);
         var p1 = path.getPointAt(progress%1);
         var p2 = path.getPointAt((progress + 0.01)%1);
-        camera.position.copy(p1);
+        camera.position.set(p1.x, p1.y, p1.z);
         camera.lookAt(p2);
       })
       .repeat(Infinity)

@@ -76,18 +76,7 @@ export default class Torus {
     return controls;
   }
 
-  materialUV () {
-    const loader = new THREE.TextureLoader();
-    const texture = loader.load('/images/uv.jpg');
-    const material = new THREE.MeshPhongMaterial({
-      color: 0xFFFFFF,
-      map: texture
-    });
-    material.name = 'materialUV';
-    return material;
-  }
-
-  materialStripes () {
+  materialShip () {
     const loader = new THREE.TextureLoader();
     const texture = loader.load('/images/SpaceShip/texture.png');
     const specular = loader.load('/images/SpaceShip/specular.png');
@@ -101,12 +90,40 @@ export default class Torus {
     return material;
   }
 
+  materialUV () {
+    const loader = new THREE.TextureLoader();
+    const texture = loader.load('/images/uv.jpg');
+    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+    const material = new THREE.MeshPhongMaterial({
+      color: 0xFFFFFF,
+      map: texture
+    });
+    material.name = 'materialUV';
+    return material;
+  }
+
+  materialStripes () {
+    const loader = new THREE.TextureLoader();
+    const texture = loader.load('/images/tilenoise.png');
+    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set( 4, 4); // or whatever you like
+    const material = new THREE.MeshPhongMaterial({
+      color: 0xFFFFFF, 
+      map: texture,
+      normalMap: texture,
+      specularMap: texture,
+      specular: 0x111111
+    });
+    material.name = 'materialStripes';
+    return material;
+  }
+
   demoMaterial () {
     // const bump = proceduralTexture('noise', 512, 512, 75);
-    const texture = noiseTexture('perlinPeriodic', 256, 256);
-    texture.anisotropy = 2;
-    //texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-    // texture.repeat.set( 8, 0.5 ); // or whatever you like
+    const texture = noiseTexture('perlinPeriodic', 512, 512);
+    // texture.anisotropy = 2;
+    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set( 2, 1 ); // or whatever you like
     const material = new THREE.MeshPhongMaterial({
       color: 0xFFFFFF, 
       specular: 0x111111,
@@ -118,14 +135,14 @@ export default class Torus {
   }
 
   demoGeometry () {
-    const geometry = new THREE.TorusGeometry(10, 2.5, 32, 32, Math.PI * 2);
-    const mesh = new THREE.Mesh(geometry, this.materialStripes());
+    const geometry = new THREE.TorusGeometry(10, 2.5, 64, 64, Math.PI * 2);
+    const mesh = new THREE.Mesh(geometry, this.demoMaterial());
     mesh.name = 'demoGeometry'
     return mesh;
   }
 
   demoLights () {
-    const light = new THREE.AmbientLight( 0xFFFFFF, 5 );
+    const light = new THREE.AmbientLight( 0xFFFFFF, 2 );
     light.name = 'demoLights';
     return light;
   }

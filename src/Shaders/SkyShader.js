@@ -26,7 +26,7 @@ const effectController  = {
   azimuth: 0.25, // Facing front,
 };
 
-const distance = 100;
+const distance = 280;
 
 const SkyShader = {
   uniforms: {
@@ -218,7 +218,7 @@ const SkyShader = {
 const Sky = function () {
   const shader = Object.assign({}, SkyShader);
   const uniforms = THREE.UniformsUtils.clone( shader.uniforms );
-  const geometry = new THREE.SphereBufferGeometry( 80, 32, 15 );
+  const geometry = new THREE.SphereBufferGeometry( 260, 32, 15 );
   const material = new THREE.ShaderMaterial({
     fragmentShader: shader.fragmentShader,
     vertexShader: shader.vertexShader,

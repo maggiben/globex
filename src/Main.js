@@ -21,12 +21,12 @@ const options = {
 };
 
 
-const torus = window.torus = new Torus(container, options);
-torus.animate();
+// const torus = window.torus = new Torus(container, options);
+// torus.animate();
 
 
-// const rings = window.rings = new Rings(container, options);
-// rings.animate();
+const rings = window.rings = new Rings(container, options);
+rings.animate();
 
 // const globe = new Globe(container, options);
 // globe.animate();

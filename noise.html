@@ -8,6 +8,15 @@
     <title>Noise tester</title>
     <script type="text/javascript" src="src/common/Noise.js"></script>
     <script type="text/javascript" src="https://rawgit.com/jackunion/tooloud/master/dist/tooloud.min.js"></script>
+    <style type="text/css">
+      html, 
+      body {
+        height: 100%;
+      }
+      body {
+        background-image: url('https://farm3.staticflickr.com/2717/4107254791_cbbc64de4a.jpg')
+      }
+    </style>
   </head>
 
   <body>
@@ -16,6 +25,11 @@
     <script>
       const SEED = Math.random() * 10000;
 
+      function setImg () {
+        const canvas = document.getElementById('canvas-a');
+        const img = canvas.toDataURL('image/png');
+        document.body.style.backgroundImage = `url(${img})`;
+      }
 
       function render_a(width = 256, height = 256) {
         const { canvas, context, imageData } = createCanvas('canvas-a', width, height);
@@ -29,7 +43,7 @@
                 y = 15 * (j / height),         // You can use different scale values for each coordinate
                 z = 0;
 
-            let n = perlin.pnoise3(x, y, z, 15, 15, 0),  // calculate noise value at x, y, z
+            let n = perlin.pnoise3(x, y, z, x, y, z),  // calculate noise value at x, y, z
                 r = Math.floor(255 * n),
                 g = Math.floor(255 * n),
                 b = Math.floor(255 * n);
@@ -41,6 +55,7 @@
           }
         }
         context.putImageData(imageData, 0, 0);
+        setImg()
       }
       function render_b(width = 256, height = 256) {
         const { canvas, context, imageData } = createCanvas('canvas-b', width, height);
