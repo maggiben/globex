@@ -107,6 +107,8 @@ export default class Rings {
   }
 
   animateCamera (camera, path) {
+    var pt = this.scene.position;
+    const trac2k = new Track(Scenario.trac2k);
     // const up = new THREE.Vector3(0, 0, 1);
     // const axis = new THREE.Vector3();
     const moveCamera = Utils.translateFromPath(camera, path, true);
@@ -116,8 +118,9 @@ export default class Rings {
       .onUpdate(function(progress) {
         // path.moveTo(camera, [0, 0, 1], position);
         var p1 = path.getPointAt(progress%1);
-        var p2 = path.getPointAt((progress + 0.01)%1);
+        var p2 = trac2k.getPointAt((progress + 0.01)%1);
         camera.position.copy(p1);
+        var px1 = new THREE.Vector3(p2.x, pt.y, pt.z)
         camera.lookAt(p2);
       })
       .repeat(Infinity)
